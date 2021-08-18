@@ -26,3 +26,7 @@ $ pip install [library]
 
 - logging
 - time
+
+## References
+
+- [Bisto Developer API](https://bitso.com/developers)

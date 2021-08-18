@@ -137,7 +137,7 @@ class Bitso:
         data = {'currency': currency, 'success': False}
         return data
 
-    def placeOrder(self, book, side, order_type):
+    def placeOrder(self, book, side, order_type, price):
         request_path = '/v3/orders/'
         parameters = dict()
         # book to use (eth_mx, btc_mxn)
