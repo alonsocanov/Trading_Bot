@@ -6,8 +6,10 @@ import api
 def startBot():
     bot = api.Bitso('config.json')
     balance = bot.getBalance(bot.assets)
-    fees = bot.getFees(['btc_mxn'])
-    print(fees)
+    print(balance)
+    print('\n')
+    fees = bot.getFees()
+    bot.getTrades()
 
 
 def main():

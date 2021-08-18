@@ -43,11 +43,25 @@ class Bitso:
             assets.append(crypto)
         return assets
 
-    def createSignature(self, http_method, request_path):
+    def getSignature(self, request_path):
+        http_method = 'GET'
         nonce = str(int(round(time.time() * 1000)))
         message = nonce+http_method+request_path
-        if (http_method == "POST"):
-            message += json.dumps(self.parameters)
+        signature = hmac.new(self.__secret.encode('utf-8'),
+                             message.encode('utf-8'),
+                             hashlib.sha256).hexdigest()
+        # Build the auth header
+        auth_header = 'Bitso %s:%s:%s' % (self.__key, nonce, signature)
+        response = requests.get(
+            "https://api.bitso.com" + request_path, headers={"Authorization": auth_header})
+        return json.loads(response.content.decode('utf8'))
+
+    def postSignature(self, request_path, parameters):
+        http_method = 'POST'
+        nonce = str(int(round(time.time() * 1000)))
+        message = nonce+http_method+request_path
+
+        message += json.dumps(parameters)
         signature = hmac.new(self.__secret.encode('utf-8'),
                              message.encode('utf-8'),
                              hashlib.sha256).hexdigest()
@@ -56,19 +70,14 @@ class Bitso:
         auth_header = 'Bitso %s:%s:%s' % (self.__key, nonce, signature)
 
         # Send request
-        if (http_method == "GET"):
-            response = requests.get(
-                "https://api.bitso.com" + request_path, headers={"Authorization": auth_header})
-        elif (http_method == "POST"):
-            response = requests.post("https://api.bitso.com" + request_path,
-                                     json=self.parameters, headers={"Authorization": auth_header})
+        response = requests.post("https://api.bitso.com" + request_path,
+                                 json=self.parameters, headers={"Authorization": auth_header})
 
         return json.loads(response.content.decode('utf8'))
 
     def getFees(self, currency_fee=[]):
-        http_method = 'GET'
         request_path = '/v3/fees/'
-        response = self.createSignature(http_method, request_path)
+        response = self.getSignature(request_path)
         data = dict()
         if response['success']:
             all_data = dict()
@@ -90,9 +99,8 @@ class Bitso:
         return data
 
     def getBalance(self, currency=[]):
-        http_method = 'GET'
         request_path = '/v3/balance/'
-        response = self.createSignature(http_method, request_path)
+        response = self.getSignature(request_path)
 
         data = dict()
         if response['success']:
@@ -120,9 +128,72 @@ class Bitso:
 
         return data
 
+    def getTrades(self, date=[]):
+        request_path = '/v3/user_trades/'
+        response = self.getSignature(request_path)
+        print(response)
+
     def emptyBalance(self, currency):
         data = {'currency': currency, 'success': False}
         return data
+
+    def placeOrder(self, book, side, order_type):
+        request_path = '/v3/orders/'
+        parameters = dict()
+        # book to use (eth_mx, btc_mxn)
+        parameters['book'] = book
+        # side of market (buy or sell)
+        parameters['side'] = side
+        # type of order (limit or market)
+        # limit: value reaches a threshold
+        # market: current price
+        parameters['type'] = order_type
+        # the amount of mayor currency
+        mayor = ''
+        # the amount of minor currency
+        minor = ''
+        # only amount of minor or mayor can be set
+        if mayor and minor:
+            message = 'Mayor and minor have values'
+            sys.exit(message)
+        elif mayor:
+            parameters['mayor'] = mayor
+        elif minor:
+            parameters['minor'] = minor
+
+        # only use price when type is limit
+        if parameters['type'] == 'limit':
+            if isinstance(price, float) and price:
+                price = str(price)
+            parameters['price'] = price
+            # time that the order can be open
+            parameters['time_in_force'] = ''
+        # only use stop for stop orders
+        # determine the price per unit of mayor
+        if parameters['mayor']:
+            parameters['stop'] = ''
+
+        response = self.postSignature(self, request_path, parameters)
+        return response
+
+    def placeBuyOrder(self, book, price=''):
+        side = 'buy'
+        response = self.placeOrder()
+
+    def getOrder(self, order_id):
+        request_path = '/v3/orders/'
+        if isinstance(str, order_id):
+            request_path += order_id
+            if not request_path.endswith('/'):
+                request_path += '/'
+        elif isinstance(order_id, list):
+            for order in order_id:
+                if not order.endswith('/'):
+                    request_path += order + '/'
+                else:
+                    request_path += order
+        response = self.getSignature(request_path)
+        print(response)
 
 
 def getBalances():
@@ -130,11 +201,7 @@ def getBalances():
 
 
 def getMarketPrice():
-
-    get_symbols(output_format='pandas', token=config.TOKEN)
-    tsla = Stock('AAPL', token=config.TOKEN)
-    # print(tsla.get_quote())
-    print(tsla.get_price())
+    pass
 
 
 def placeSellOrder():
