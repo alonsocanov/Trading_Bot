@@ -56,6 +56,19 @@ class Bitso:
             "https://api.bitso.com" + request_path, headers={"Authorization": auth_header})
         return json.loads(response.content.decode('utf8'))
 
+    def deleteSignature(self, request_path):
+        http_method = 'DELETE'
+        nonce = str(int(round(time.time() * 1000)))
+        message = nonce+http_method+request_path
+        signature = hmac.new(self.__secret.encode('utf-8'),
+                             message.encode('utf-8'),
+                             hashlib.sha256).hexdigest()
+        # Build the auth header
+        auth_header = 'Bitso %s:%s:%s' % (self.__key, nonce, signature)
+        response = requests.delete(
+            "https://api.bitso.com" + request_path, headers={"Authorization": auth_header})
+        return json.loads(response.content.decode('utf8'))
+
     def postSignature(self, request_path, parameters):
         http_method = 'POST'
         nonce = str(int(round(time.time() * 1000)))
@@ -131,16 +144,16 @@ class Bitso:
     def getTrades(self, date=[]):
         request_path = '/v3/user_trades/'
         response = self.getSignature(request_path)
-        print(response)
+        return response
 
     def emptyBalance(self, currency):
         data = {'currency': currency, 'success': False}
         return data
 
-    def placeOrder(self, book, side, order_type, price):
+    def placeOrder(self, book, side, order_type, price='', mayor='', minor='', time_in_force='', stop=''):
         request_path = '/v3/orders/'
         parameters = dict()
-        # book to use (eth_mx, btc_mxn)
+        # book to use (eth_mxn, btc_mxn)
         parameters['book'] = book
         # side of market (buy or sell)
         parameters['side'] = side
@@ -149,9 +162,7 @@ class Bitso:
         # market: current price
         parameters['type'] = order_type
         # the amount of mayor currency
-        mayor = ''
         # the amount of minor currency
-        minor = ''
         # only amount of minor or mayor can be set
         if mayor and minor:
             message = 'Mayor and minor have values'
@@ -162,38 +173,92 @@ class Bitso:
             parameters['minor'] = minor
 
         # only use price when type is limit
-        if parameters['type'] == 'limit':
+        if order_type == 'limit':
             if isinstance(price, float) and price:
                 price = str(price)
             parameters['price'] = price
             # time that the order can be open
-            parameters['time_in_force'] = ''
+            parameters['time_in_force'] = time_in_force
         # only use stop for stop orders
         # determine the price per unit of mayor
-        if parameters['mayor']:
-            parameters['stop'] = ''
+        if parameters['mayor'] and stop:
+            parameters['stop'] = stop
 
         response = self.postSignature(self, request_path, parameters)
         return response
 
-    def placeBuyOrder(self, book, price=''):
+    def buyMarket(self, book):
         side = 'buy'
-        response = self.placeOrder()
+        order_type = 'market'
+        response = self.placeOrder(book, side, order_type)
+        return response
 
-    def getOrder(self, order_id):
+    def buyLimit(self, book, price, mayor, minor, time_in_force):
+        side = 'buy'
+        order_type = 'limit'
+        response = self.placeOrder(
+            book, side, order_type, price, mayor, minor, time_in_force)
+        return response
+
+    def getOrder(self, order_id=''):
         request_path = '/v3/orders/'
-        if isinstance(str, order_id):
-            request_path += order_id
-            if not request_path.endswith('/'):
-                request_path += '/'
-        elif isinstance(order_id, list):
-            for order in order_id:
-                if not order.endswith('/'):
-                    request_path += order + '/'
-                else:
-                    request_path += order
+        if order_id:
+            if isinstance(str, order_id):
+                request_path += order_id
+                if not request_path.endswith('/'):
+                    request_path += '/'
+            elif isinstance(order_id, list):
+                for order in order_id:
+                    if not order.endswith('/'):
+                        request_path += order + '/'
+                    else:
+                        request_path += order
+        else:
+            request_path = '/v3/open_orders/'
         response = self.getSignature(request_path)
-        print(response)
+        return response
+
+    def cancelOrder(self, order_id):
+        if order_id:
+            # cancel all orders
+            if order_id == 'all':
+                request_path = '/v3/orders/all'
+            # single id
+            elif isinstance(order_id, str):
+                request_path = '/v3/orders/' + order_id
+                if not request_path.endswith('/'):
+                    request_path += '/'
+            # multiple ids
+            elif isinstance(order_id, list):
+                request_path = '/v3/orders?oids='
+                orders = ','.join(order_id).strip(' ,')
+                request_path += orders
+            else:
+                message = 'Cancel Order order id not in required format'
+                sys.exit(message)
+
+            response = self.deleteSignature(request_path)
+        return response
+
+    @staticmethod
+    def getPublic(request_path):
+        response = requests.get(
+            "https://api.bitso.com" + request_path)
+        return json.loads(response.content.decode('utf8'))
+
+    def availableBooks(self, book=''):
+        request_path = '/v3/available_books/'
+        response = Bitso.getPublic(request_path)
+
+        if response['success']:
+
+            # finish
+
+            pass
+        return response
+
+    def getOrederBook(self, book):
+        request_path = '/v3/order_book/'
 
 
 def getBalances():
@@ -201,14 +266,6 @@ def getBalances():
 
 
 def getMarketPrice():
-    pass
-
-
-def placeSellOrder():
-    pass
-
-
-def placeBuyOrder():
     pass
 
 

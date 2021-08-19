@@ -9,7 +9,10 @@ def startBot():
     print(balance)
     print('\n')
     fees = bot.getFees()
-    bot.getTrades()
+    trades = bot.getTrades()
+    orders = bot.getOrder()
+    available_books = bot.availableBooks()
+    print(available_books)
 
 
 def main():
