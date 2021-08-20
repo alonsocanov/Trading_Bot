@@ -24,3 +24,13 @@ def attemptToMakeTrade(last_operation_price, is_next_operation_buy):
         tryToBuy(percentage_diff)
     else:
         tryToSell(percentage_diff)
+
+
+def trackBotInvest():
+    # get total invested and what not to move
+    my_invest = 300
+    currency = 'MXN'
+    currency_invested_to = ''
+    crypto_amount = ''
+
+    pass

@@ -1,12 +1,9 @@
-import time
+from datetime import date
 import json
 import os
 import sys
+from logs import log_message
 
 
-def getCurrentDate():
-    pass
-
-
-def createFile(file):
+if __name__ == '__main__':
     pass

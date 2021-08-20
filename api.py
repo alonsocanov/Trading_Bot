@@ -6,7 +6,7 @@ import hmac
 import hashlib
 import requests
 import json
-from logs import log
+from logs import log_message
 import os
 import sys
 import itertools
@@ -98,6 +98,9 @@ class Bitso:
                 if balance['book'] in self.__mayor_minor:
                     all_data[balance['book']] = balance
             if currency_fee:
+                if isinstance(currency_fee, str):
+                    currency_fee = currency_fee.replace(
+                        ' ', '').strip(',').split(',')
                 for c in currency_fee:
                     if c in all_data:
                         data[c] = all_data[c]
@@ -106,7 +109,7 @@ class Bitso:
                         data[c] = self.emptyBalance(c)
                         message = ' '.join(
                             ['Currency', c, 'not available.'])
-                        log('ERROR', message)
+                        log_message('ERROR', message)
             else:
                 data = all_data
         return data
@@ -123,6 +126,8 @@ class Bitso:
             for balance in response["payload"]["balances"]:
                 all_data[balance['currency']] = balance
             if currency:
+                if isinstance(currency, str):
+                    currency = currency.replace(' ', '').strip(',').split(',')
                 for c in currency:
                     if c in all_data:
                         data[c] = all_data[c]
@@ -131,13 +136,13 @@ class Bitso:
                         data[c] = self.emptyBalance(c)
                         message = ' '.join(
                             ['Currency', c, 'not available.'])
-                        log('ERROR', message)
+                        log_message('ERROR', message)
             else:
                 data = all_data
         else:
             data['success'] = False
             message = 'Unable to connect'
-            log('ERROR', message)
+            log_message('ERROR', message)
 
         return data
 
@@ -202,42 +207,21 @@ class Bitso:
 
     def getOrder(self, order_id=''):
         request_path = '/v3/orders/'
-        if order_id:
-            if isinstance(str, order_id):
-                request_path += order_id
-                if not request_path.endswith('/'):
-                    request_path += '/'
-            elif isinstance(order_id, list):
-                for order in order_id:
-                    if not order.endswith('/'):
-                        request_path += order + '/'
-                    else:
-                        request_path += order
+        ids = Bitso.arrangeRequest(order_id)
+        if ids:
+            request_path = '/v3/orders/' + ids
         else:
             request_path = '/v3/open_orders/'
         response = self.getSignature(request_path)
         return response
 
     def cancelOrder(self, order_id):
-        if order_id:
-            # cancel all orders
-            if order_id == 'all':
-                request_path = '/v3/orders/all'
-            # single id
-            elif isinstance(order_id, str):
-                request_path = '/v3/orders/' + order_id
-                if not request_path.endswith('/'):
-                    request_path += '/'
-            # multiple ids
-            elif isinstance(order_id, list):
-                request_path = '/v3/orders?oids='
-                orders = ','.join(order_id).strip(' ,')
-                request_path += orders
-            else:
-                message = 'Cancel Order order id not in required format'
-                sys.exit(message)
-
-            response = self.deleteSignature(request_path)
+        ids = Bitso.arrangeRequest(order_id)
+        if ',' in ids:
+            request_path = '/v3/orders?oids='+ids
+        else:
+            request_path = '/v3/orders/'+ids
+        response = self.deleteSignature(request_path)
         return response
 
     @staticmethod
@@ -246,8 +230,46 @@ class Bitso:
             "https://api.bitso.com" + request_path)
         return json.loads(response.content.decode('utf8'))
 
-    def availableBooks(self, book=''):
+    @staticmethod
+    def arrangeRequest(data):
+        arranged_data = ''
+        if data:
+            if isinstance(data, str):
+                # check if thre are multiple (,)
+                arranged_data = data.strip(' /,')
+            # multiple ids
+            elif isinstance(data, list):
+                arranged_data = ','.join(data).strip(' ,')
+        return arranged_data
+
+    def getAvailableBooks(self, books=''):
         request_path = '/v3/available_books/'
+        response = Bitso.getPublic(request_path)
+        data = dict()
+        if response['success']:
+            all_data = dict()
+            for balance in response["payload"]:
+                if balance['book'] in books:
+                    all_data[balance['book']] = balance
+            if books:
+                if isinstance(books, str):
+                    books = books.replace(' ', '').strip(',').split(',')
+                for book in books:
+                    if book in all_data:
+                        data[book] = all_data[book]
+                        data[book]['success'] = True
+                    else:
+                        data[book] = self.emptyBalance(book)
+                        message = ' '.join(
+                            ['Book', book, 'not available.'])
+                        log_message('ERROR', message)
+            else:
+                data = all_data
+        return data
+
+    def getTicker(self, book=''):
+        # trading information of a book
+        request_path = '/v3/ticker/'
         response = Bitso.getPublic(request_path)
 
         if response['success']:
@@ -258,7 +280,10 @@ class Bitso:
         return response
 
     def getOrederBook(self, book):
-        request_path = '/v3/order_book/'
+        request_path = '/v3/order_book/?book=' + book
+        response = Bitso.getPublic(request_path)
+
+        return response
 
 
 def getBalances():

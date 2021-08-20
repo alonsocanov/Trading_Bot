@@ -1,0 +1,10 @@
+INFO - 08-20-2021 13:17:55 - hi
+INFO - 08-20-2021 13:21:20 - {'btc_mxn': {'book': 'btc_mxn', 'minimum_price': '500', 'maximum_price': '10000000', 'minimum_amount': '0.00005', 'maximum_amount': '500', 'minimum_value': '5', 'maximum_value': '30000000', 'tick_size': '0.01', 'default_chart': 'candle', 'fees': {'flat_rate': {'maker': '0.500', 'taker': '0.650'}, 'structure': [{'volume': '1500000', 'maker': '0.00500', 'taker': '0.00650'}, {'volume': '2000000', 'maker': '0.00490', 'taker': '0.00637'}, {'volume': '5000000', 'maker': '0.00480', 'taker': '0.00624'}, {'volume': '7000000', 'maker': '0.00440', 'taker': '0.00572'}, {'volume': '10000000', 'maker': '0.00420', 'taker': '0.00546'}, {'volume': '15000000', 'maker': '0.00400', 'taker': '0.00520'}, {'volume': '35000000', 'maker': '0.00370', 'taker': '0.00481'}, {'volume': '50000000', 'maker': '0.00300', 'taker': '0.00390'}, {'volume': '150000000', 'maker': '0.00200', 'taker': '0.00260'}, {'volume': '250000000', 'maker': '0.00100', 'taker': '0.00130'}, {'volume': '9999999999', 'maker': '0.00000', 'taker': '0.00130'}]}, 'success': True}}
+INFO - 08-20-2021 13:22:44 - Started bot
+INFO - 08-20-2021 13:25:52 - Started bot
+ERROR - 08-20-2021 13:25:52 - Currency m not available.
+ERROR - 08-20-2021 13:25:52 - Currency x not available.
+ERROR - 08-20-2021 13:25:52 - Currency n not available.
+INFO - 08-20-2021 13:25:52 - {'success': True, 'm': {'currency': 'm', 'success': False}, 'x': {'currency': 'x', 'success': False}, 'n': {'currency': 'n', 'success': False}}
+INFO - 08-20-2021 13:27:25 - Started bot
+INFO - 08-20-2021 13:27:25 - {'success': True, 'mxn': {'currency': 'mxn', 'available': '300.00995343', 'locked': '0.00000000', 'total': '300.00995343', 'pending_deposit': '0.00000000', 'pending_withdrawal': '0.00', 'success': True}}
