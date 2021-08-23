@@ -1,6 +1,7 @@
 from logs import log_message
 import utils
 import api
+import trade
 
 
 def startBot():
@@ -9,22 +10,17 @@ def startBot():
     my_assets = bot.assets
     if 'mxn' in my_assets:
         asset = 'mxn'
-    balance = bot.getBalance(asset)
+    balance = bot.getAvailableBalance(asset)
     log_message('INFO', balance)
 
-    # fees = bot.getFees()
-    # trades = bot.getTrades()
-    # orders = bot.getOrder()
-    # available_books = bot.getAvailableBooks(['btc_mxn'])
-    # ticker = bot.getTicker()
-    # order_book = bot.getOrederBook('btc_mxn')
-    # print(balance)
-    # print('\n')
-    # print(available_books)
-    # print('\n')
-    # print(ticker)
-    # print('\n')
-    # print(order_book)
+    for idx in range(5):
+        btc_fee = bot.getTakerPercentageFee('btc_mxn')
+        btc_bid = bot.getBids('btc_mxn')[0]
+
+        btc_mxn = trade.conversion(balance, btc_bid['price'])
+        total_btc = trade.tradeWithFee(btc_mxn, btc_fee)
+
+        utils.sleep(2)
 
 
 def main():

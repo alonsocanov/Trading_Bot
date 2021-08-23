@@ -1,3 +1,4 @@
+from requests.models import Response
 import config
 # from iexfinance.stocks import Stock
 # from iexfinance.refdata import get_symbols
@@ -88,63 +89,50 @@ class Bitso:
 
         return json.loads(response.content.decode('utf8'))
 
-    def getFees(self, currency_fee=[]):
+    def getFees(self, mayor_minor: list):
         request_path = '/v3/fees/'
         response = self.getSignature(request_path)
         data = dict()
-        if response['success']:
-            all_data = dict()
-            for balance in response["payload"]["fees"]:
-                if balance['book'] in self.__mayor_minor:
-                    all_data[balance['book']] = balance
-            if currency_fee:
-                if isinstance(currency_fee, str):
-                    currency_fee = currency_fee.replace(
-                        ' ', '').strip(',').split(',')
-                for c in currency_fee:
-                    if c in all_data:
-                        data[c] = all_data[c]
-                        data[c]['success'] = True
-                    else:
-                        data[c] = self.emptyBalance(c)
-                        message = ' '.join(
-                            ['Currency', c, 'not available.'])
-                        log_message('ERROR', message)
-            else:
-                data = all_data
-        return data
-
-    def getBalance(self, currency=[]):
-        request_path = '/v3/balance/'
-        response = self.getSignature(request_path)
-
-        data = dict()
+        data['success'] = False
         if response['success']:
             data['success'] = True
-            all_data = dict()
-            all_data['success'] = True
-            for balance in response["payload"]["balances"]:
-                all_data[balance['currency']] = balance
-            if currency:
-                if isinstance(currency, str):
-                    currency = currency.replace(' ', '').strip(',').split(',')
-                for c in currency:
-                    if c in all_data:
-                        data[c] = all_data[c]
-                        data[c]['success'] = True
-                    else:
-                        data[c] = self.emptyBalance(c)
-                        message = ' '.join(
-                            ['Currency', c, 'not available.'])
-                        log_message('ERROR', message)
-            else:
-                data = all_data
-        else:
-            data['success'] = False
-            message = 'Unable to connect'
-            log_message('ERROR', message)
-
+            for fee in response["payload"]["fees"]:
+                if fee['book'] in mayor_minor:
+                    data[fee['book']] = fee
         return data
+
+    def getTakerPercentageFee(self, mayor_minor: str):
+        fee = self.getFees(mayor_minor)[mayor_minor]['taker_fee_percent']
+        message = ' '.join(['Taker percentage fee for',
+                            mayor_minor.upper(), ':', fee])
+        log_message('INFO', message)
+        return fee
+
+    def getMakerPercentageFee(self, mayor_minor: str):
+        fee = self.getFees(mayor_minor)[mayor_minor]['maker_fee_percent']
+        message = ' '.join(['Maker percentage fee for',
+                            mayor_minor.upper(), ':', fee])
+        log_message('INFO', message)
+        return fee
+
+    def getBalance(self, currency: list):
+        request_path = '/v3/balance/'
+        response = self.getSignature(request_path)
+        data = dict()
+        data['success'] = False
+        if response['success']:
+            data['success'] = True
+            for balance in response["payload"]["balances"]:
+                if balance['currency'] in currency:
+                    data[balance['currency']] = balance
+        return data
+
+    def getAvailableBalance(self, currency=str):
+        available_balance = self.getBalance(currency)[currency]['available']
+        message = ' '.join(['Available balance',
+                            currency.upper(), ':', available_balance])
+        log_message('INFO', message)
+        return available_balance
 
     def getTrades(self, date=[]):
         request_path = '/v3/user_trades/'
@@ -282,7 +270,26 @@ class Bitso:
     def getOrederBook(self, book):
         request_path = '/v3/order_book/?book=' + book
         response = Bitso.getPublic(request_path)
+        return response
 
+    def getBidsAsks(self, book):
+        response = self.getOrederBook(book)
+        data = dict()
+        data['success'] = False
+        data['asks'] = []
+        data['bids'] = []
+        if response['success']:
+            data['success'] = True
+            data['asks'] = response['payload']['asks']
+            data['bids'] = response['payload']['bids']
+        return data
+
+    def getBids(self, book):
+        response = self.getBidsAsks(book)['bids']
+        return response
+
+    def getAsks(self, book):
+        response = self.getBidsAsks(book)['asks']
         return response
 
 
