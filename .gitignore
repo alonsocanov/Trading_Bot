@@ -1,5 +1,5 @@
 *.DS_Sore
-*credentials.json
+config/credentials.json
 **__pycache__**
 **logs**
 **data**
