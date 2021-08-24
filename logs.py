@@ -1,6 +1,7 @@
 import logging
 import os
 from datetime import date
+import sys
 
 
 def getDate():
@@ -47,6 +48,7 @@ def createLogFile():
         return file_path
     else:
         log_message('ERROR', 'Directory log does not exist')
+        sys.exit('Could not find directory: log')
 
 # A good log example
 # [BALANCE] USD Balance = 22.15$
@@ -55,7 +57,6 @@ def createLogFile():
 # [ERROR] Could not perform SELL operation - Insufficient balance
 
 
-# if __name__ != '__main__':
 # log configuration
 level = logging.INFO
 log_path = createLogFile()

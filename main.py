@@ -8,6 +8,9 @@ def startBot():
     log_message('INFO', 'Started bot')
     bot = api.Bitso('config/credentials.json')
     trade_config = utils.readJson('config/trade.json')
+
+    history_file = utils.createFile('data', 'json')
+
     upward_trend_threshold = trade_config['UPWARD_TREND_THRESHOLD']
     dip_threshold = trade_config['DIP_THRESHOLD']
     profit_threshold = trade_config['PROFIT_THRESHOLD']
@@ -25,6 +28,7 @@ def startBot():
     for idx in range(1):
         btc_fee = bot.getTakerPercentageFee('btc_mxn')
         btc_bids = bot.getBids('btc_mxn')
+        btc_asks = bot.getAsks('btc_mxn')
         current_price = btc_bids[0]['price']
         btc_mxn = trade.mayorMinorConversion(balance, btc_bids)
         total_btc = trade.tradeWithFee(btc_mxn, btc_fee)
