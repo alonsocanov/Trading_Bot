@@ -23,5 +23,16 @@ def sleep(var):
     time.sleep(var)
 
 
+def readJson(file_path):
+    if os.path.isfile(file_path):
+        file = open(file_path)
+        data = json.load(file)
+        file.close()
+        return data
+    else:
+        message = ['Could find file:', file_path]
+        log_message('ERROR', message)
+
+
 if __name__ == '__main__':
     pass

@@ -12,63 +12,73 @@ def tradeWithFee(amount, fee):
     total = amount - amount * (fee / 100)
 
     total = floatToStr(total)
-    message = ' '.join(['Trade with fee will give:', total])
+    message = ['Trade with fee will give:', total]
     log_message('INFO', message)
     return total
 
 
-def conversion(amount, book_price):
+def mayorMinorConversion(amount, books: list):
     amount = strToFloat(amount)
-    book_price = strToFloat(book_price)
-    total = amount / book_price
+    total = 0
+    needed = None
+    for book in books:
+        price = strToFloat(book['price'])
+        total += amount / price
+        if not needed:
+            needed = total
+        if strToFloat(book['amount']) < needed:
+            needed -= strToFloat(book['amount'])
+        else:
+            break
 
     total = floatToStr(total)
-    message = ' '.join(['Trade will give:', total])
+    message = ['Trade will give:', total]
     log_message('INFO', message)
     return total
 
 
-def tryToBuy(percentage_diff):
+def tryToBuy(percentage_diff, upward_trend_threshold, dip_threshold):
     log_message('INFO', 'Trying to BUY')
-    message = ' '.join(['Percentage difference:', str(percentage_diff)])
+    message = ['Percentage difference:', percentage_diff, '%']
     log_message('INFO', message)
-    message = ' '.join(
-        ['Upward trend threshold', str(config.UPWARD_TREND_THRESHOLD)])
-    log_message('INFO', message)
-    message = ' '.join(
-        ['Dip threshold', str(config.DIP_THRESHOLD)])
-    log_message('INFO', message)
-    if percentage_diff >= config.UPWARD_TREND_THRESHOLD or percentage_diff <= config.DIP_THRESHOLD:
+    if percentage_diff >= upward_trend_threshold or percentage_diff <= dip_threshold:
+        log_message('INFO', 'BUYING')
         last_operation_price = api.placeBuyOrder()
         is_next_operation_buy = False
-    log_message('INFO', 'NOT BUYING')
     return last_operation_price, is_next_operation_buy
 
 
-def tryToSell(percentage_diff):
+def tryToSell(percentage_diff, profit_threshold, stop_loss_threshold):
     log_message('INFO', 'Trying to SELL')
-    message = ' '.join(['Percentage difference:', str(percentage_diff)])
+    message = ['Percentage difference:', percentage_diff]
     log_message('INFO', message)
-    message = ' '.join(
-        ['Profit threshold', str(config.PROFIT_THRESHOLD)])
-    log_message('INFO', message)
-    message = ' '.join(
-        ['Stop loss threshold', str(config.STOP_LOSS_THRESHOLD)])
-    log_message('INFO', message)
-    if percentage_diff >= config.PROFIT_THRESHOLD or percentage_diff <= config.STOP_LOSS_THRESHOLD:
-        last_operation_price = api.placeBuyOrder()
+    if percentage_diff >= profit_threshold or percentage_diff <= stop_loss_threshold:
+        log_message('INFO', 'SELLING')
+        last_operation_price = api.placeSellOrder()
         is_next_operation_buy = True
     return last_operation_price, is_next_operation_buy
 
 
-def attemptToMakeTrade(last_operation_price, is_next_operation_buy):
-    current_price = api.getMarketPrice()
+def attemptToMakeTrade(upward_trend_threshold, dip_threshold, profit_threshold, stop_loss_threshold, last_operation_price, current_price, is_next_operation_buy):
+    upward_trend_threshold = strToFloat(upward_trend_threshold)
+    dip_threshold = strToFloat(dip_threshold)
+    profit_threshold = strToFloat(profit_threshold)
+    stop_loss_threshold = strToFloat(stop_loss_threshold)
+    last_operation_price = strToFloat(last_operation_price)
+    current_price = strToFloat(current_price)
+
     percentage_diff = (
         current_price - last_operation_price)/last_operation_price*100
     if is_next_operation_buy:
-        tryToBuy(percentage_diff)
+        last_operation_price, is_next_operation_buy = tryToBuy(
+            percentage_diff, upward_trend_threshold, dip_threshold)
     else:
-        tryToSell(percentage_diff)
+        last_operation_price, is_next_operation_buy = tryToSell(
+            percentage_diff, profit_threshold, stop_loss_threshold)
+
+    last_operation_price = floatToStr(last_operation_price)
+    is_next_operation_buy = floatToStr(last_operation_price)
+    return last_operation_price, is_next_operation_buy
 
 
 def trackBotInvest():

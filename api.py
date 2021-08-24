@@ -103,15 +103,15 @@ class Bitso:
 
     def getTakerPercentageFee(self, mayor_minor: str):
         fee = self.getFees(mayor_minor)[mayor_minor]['taker_fee_percent']
-        message = ' '.join(['Taker percentage fee for',
-                            mayor_minor.upper(), ':', fee])
+        message = ['Taker percentage fee for',
+                   mayor_minor.upper(), ':', fee, '%']
         log_message('INFO', message)
         return fee
 
     def getMakerPercentageFee(self, mayor_minor: str):
         fee = self.getFees(mayor_minor)[mayor_minor]['maker_fee_percent']
-        message = ' '.join(['Maker percentage fee for',
-                            mayor_minor.upper(), ':', fee])
+        message = ['Maker percentage fee for',
+                   mayor_minor.upper(), ':', fee, '%']
         log_message('INFO', message)
         return fee
 
@@ -129,8 +129,7 @@ class Bitso:
 
     def getAvailableBalance(self, currency=str):
         available_balance = self.getBalance(currency)[currency]['available']
-        message = ' '.join(['Available balance',
-                            currency.upper(), ':', available_balance])
+        message = ['Available balance :', available_balance, currency.upper()]
         log_message('INFO', message)
         return available_balance
 
