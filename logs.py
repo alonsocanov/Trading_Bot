@@ -13,7 +13,15 @@ def getCurrentDirectory():
 
 
 def log_message(message_type, message):
-    if not isinstance(message, str):
+    output_message = list()
+    if isinstance(message, list):
+        for string in message:
+            if not isinstance(string, str):
+                output_message.append(str(string))
+            else:
+                output_message.append(string)
+        message = ' '.join(output_message)
+    elif not isinstance(message, str):
         message = str(message)
     message_type = message_type.upper()
     if message_type == 'INFO':
