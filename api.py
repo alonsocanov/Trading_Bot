@@ -85,7 +85,7 @@ class Bitso:
 
         # Send request
         response = requests.post("https://api.bitso.com" + request_path,
-                                 json=self.parameters, headers={"Authorization": auth_header})
+                                 json=parameters, headers={"Authorization": auth_header})
 
         return json.loads(response.content.decode('utf8'))
 
@@ -142,7 +142,7 @@ class Bitso:
         data = {'currency': currency, 'success': False}
         return data
 
-    def placeOrder(self, book, side, order_type, price='', mayor='', minor='', time_in_force='', stop=''):
+    def placeOrder(self, book: str, side: str, order_type: str, price: str = '', mayor: str = '', minor: str = '', time_in_force: str = '', stop: str = ''):
         request_path = '/v3/orders/'
         parameters = dict()
         # book to use (eth_mxn, btc_mxn)
@@ -173,26 +173,32 @@ class Bitso:
             parameters['time_in_force'] = time_in_force
         # only use stop for stop orders
         # determine the price per unit of mayor
-        if parameters['mayor'] and stop:
+        if mayor and stop:
             parameters['stop'] = stop
 
-        response = self.postSignature(self, request_path, parameters)
+        response = self.postSignature(request_path, parameters)
         return response
 
-    def buyMarket(self, book):
+    def buyMarket(self, book: str):
         side = 'buy'
         order_type = 'market'
         response = self.placeOrder(book, side, order_type)
         return response
 
-    def buyLimit(self, book, price, mayor, minor, time_in_force):
+    def sellMarket(self, book: str):
+        side = 'sell'
+        order_type = 'market'
+        response = self.placeOrder(book, side, order_type)
+        return response
+
+    def buyLimit(self, book: str, price: str, mayor: str, minor: str, time_in_force: str):
         side = 'buy'
         order_type = 'limit'
         response = self.placeOrder(
             book, side, order_type, price, mayor, minor, time_in_force)
         return response
 
-    def getOrder(self, order_id=''):
+    def getOrder(self, order_id=None):
         request_path = '/v3/orders/'
         ids = Bitso.arrangeRequest(order_id)
         if ids:

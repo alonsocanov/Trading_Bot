@@ -88,7 +88,8 @@ def jsonAppend(file_path: str, data: dict):
         sys.exit('Variable not a dictionar')
 
 
-def jsonData(transaction: str, amount: float or str, price: float or str, percentage: float or str):
+def historyData(transaction: str, amount: float or str, price: float or str, percentage: float or str):
+
     data = dict()
     data['date'] = getDateTime()
     transaction = transaction.upper().strip()
