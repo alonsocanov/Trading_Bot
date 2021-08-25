@@ -27,33 +27,48 @@ def startBot():
 
     for idx in range(1):
         btc_fee = bot.getTakerPercentageFee('btc_mxn')
-        btc_bids = bot.getBids('btc_mxn')
-        btc_asks = bot.getAsks('btc_mxn')
-        bid_current_price = btc_bids[0]['price']
-        ask_current_price = btc_asks[0]['price']
+
         btc_mxn = trade.mayorMinorConversion(balance, btc_bids)
         total_btc = trade.tradeWithFee(btc_mxn, btc_fee)
-        # last_operation_price, is_next_operation_buy = trade.attemptToMakeTrade(bid_current_price, ask_current_price,
-        #                                                                        upward_trend_threshold, dip_threshold, profit_threshold, stop_loss_threshold,
-        #                                                                        last_operation_price, is_next_operation_buy)
-        action = trade.attemptToMakeTrade(bid_current_price, ask_current_price,
-                                          upward_trend_threshold, dip_threshold, profit_threshold, stop_loss_threshold,
-                                          last_operation_price, is_next_operation_buy)
 
-        if action and is_next_operation_buy:
+        # trying to buy
+        if is_next_operation_buy:
+            btc_bids = bot.getBids('btc_mxn')
+            bid_current_price = btc_bids[0]['price']
+
+            percentage_diff = trade.percentageDifference(
+                bid_current_price, last_operation_price)
+            action = trade.tryToBuy(
+                percentage_diff, upward_trend_threshold, dip_threshold)
             # buy
-            response = bot.buyMarket('btc_mxn')
-            log_message('INFO', response)
-            # if success change is_next operation
-            if response['success']:
-                message = ['Bought Currency: BTC']
+            if action:
+                message = ['Bot tip: BUY']
                 log_message('INFO', message)
-                is_next_operation_buy = False
-            else:
-                message = ['Could NOT BUY currency: BTC']
-                log_message('ERROR', message)
+                # response = bot.buyMarket('btc_mxn', minor='100.00')
+                log_message('INFO', response)
+                # if success change is_next operation
+                if response['success']:
+                    message = ['Bought Currency: BTC']
+                    log_message('INFO', message)
+                    is_next_operation_buy = False
+                else:
+                    message = ['Could NOT BUY currency: BTC']
+                    log_message('ERROR', message)
 
-        elif action and not is_next_operation_buy:
+            else:
+                message = ['Bot tip: STAY']
+                log_message('INFO', message)
+
+        # trying to sell
+        else:
+            btc_asks = bot.getAsks('btc_mxn')
+            ask_current_price = btc_asks[0]['price']
+
+            percentaje_diff = trade.percentageDifference(
+                ask_current_price, last_operation_price)
+            action = trade.tryToSell(
+                percentage_diff, profit_threshold, stop_loss_threshold)
+            # sell
             response = bot.sellMarket('btc_mxn')
             # if success change is_next operation
             if response['success']:
@@ -64,7 +79,7 @@ def startBot():
                 message = ['Could NOT SELL currency: BTC']
                 log_message('ERROR', message)
 
-        utils.sleep(2)
+        utils.sleep(1)
 
 
 def main():

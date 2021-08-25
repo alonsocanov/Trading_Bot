@@ -36,19 +36,8 @@ def mayorMinorConversion(amount, books: list):
     return total
 
 
-# def tryToBuy(percentage_diff, upward_trend_threshold, dip_threshold):
-#     message = ['Percentage difference:', percentage_diff, '%']
-#     log_message('INFO', message)
-#     if percentage_diff >= upward_trend_threshold or percentage_diff <= dip_threshold:
-#         log_message('INFO', 'BUYING')
-#         # last_operation_price = api.placeBuyOrder()
-#         if last_operation_price['success']:
-#             data = utils.historyData(
-#                 'BUY', last_operation_price, last_operation_price, percentage_diff)
-#         is_next_operation_buy = False
-#     return last_operation_price, is_next_operation_buy
-
 def tryToBuy(percentage_diff, upward_trend_threshold, dip_threshold):
+    percentage_diff = utils.strToFloat(percentage_diff)
     message = ['Percentage difference:', percentage_diff, '%']
     log_message('INFO', message)
     buy = False
@@ -58,16 +47,8 @@ def tryToBuy(percentage_diff, upward_trend_threshold, dip_threshold):
     return True
 
 
-# def tryToSell(percentage_diff, profit_threshold, stop_loss_threshold):
-#     message = ['Percentage difference:', percentage_diff]
-#     log_message('INFO', message)
-#     if percentage_diff >= profit_threshold or percentage_diff <= stop_loss_threshold:
-#         log_message('INFO', 'SELLING')
-#         last_operation_price = api.placeSellOrder()
-#         is_next_operation_buy = True
-#     return last_operation_price, is_next_operation_buy
-
 def tryToSell(percentage_diff, profit_threshold, stop_loss_threshold):
+    percentage_diff = utils.strToFloat(percentage_diff)
     message = ['Percentage difference:', percentage_diff]
     log_message('INFO', message)
     sell = False
@@ -77,32 +58,27 @@ def tryToSell(percentage_diff, profit_threshold, stop_loss_threshold):
     return sell
 
 
-def attemptToMakeTrade(bid_price, ask_price, upward_trend_threshold, dip_threshold, profit_threshold, stop_loss_threshold, last_operation_price, is_next_operation_buy):
-    upward_trend_threshold = utils.strToFloat(upward_trend_threshold)
-    dip_threshold = utils.strToFloat(dip_threshold)
-    profit_threshold = utils.strToFloat(profit_threshold)
-    stop_loss_threshold = utils.strToFloat(stop_loss_threshold)
+def percentageDifference(price, last_operation_price):
+    message = ['Current market price:', price]
+    log_message('INFO', message)
+    message = ['Last operation price:', last_operation_price]
+    log_message('INFO', message)
+    price = utils.strToFloat(price)
     last_operation_price = utils.strToFloat(last_operation_price)
-    bid_price = utils.strToFloat(bid_price)
-    ask_price = utils.strToFloat(ask_price)
+    price_diff = price - last_operation_price
+    percentage_diff = price_diff / last_operation_price * 100
+    percentage_diff = utils.floatToStr(percentage_diff)
+    message = ['Percentage difference:', price_diff, '%']
+    log_message('INFO', message)
+    return percentage_diff
 
-    acction = False
+
+def attemptToMakeTrade(is_next_operation_buy, last_operation_price, price, limit_threshold, trend):
+    percentage_diff = percentageDifference(price, last_operation_price)
     if is_next_operation_buy:
-        log_message('INFO', 'Next operation is: BUY')
-        price_diff = bid_price - last_operation_price
-        percentage_diff = price_diff / last_operation_price * 100
-        # last_operation_price, is_next_operation_buy = tryToBuy(
-        #     percentage_diff, upward_trend_threshold, dip_threshold)
-        action = tryToBuy(
-            percentage_diff, upward_trend_threshold, dip_threshold)
+        action = tryToBuy(percentage_diff, trend, limit_threshold)
     else:
-        log_message('INFO', 'Next operation is: SELL')
-        price_diff = ask_price - last_operation_price
-        percentage_diff = price_diff / last_operation_price*100
-        # last_operation_price, is_next_operation_buy = tryToSell(
-        #     percentage_diff, profit_threshold, stop_loss_threshold)
-        action = tryToSell(
-            percentage_diff, upward_trend_threshold, dip_threshold)
+        action = tryToSell(percentage_diff, trend, limit_threshold)
 
     # last_operation_price = utils.floatToStr(last_operation_price)
     # is_next_operation_buy = utils.floatToStr(last_operation_price)

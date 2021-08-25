@@ -179,16 +179,36 @@ class Bitso:
         response = self.postSignature(request_path, parameters)
         return response
 
-    def buyMarket(self, book: str):
+    def buyMarket(self, book: str, mayor: str = '', minor: str = ''):
         side = 'buy'
         order_type = 'market'
-        response = self.placeOrder(book, side, order_type)
+        response = {'success': False}
+        if mayor and minor:
+            message = ['Can only input amount for mayor or minor']
+            log_message('ERROR', message)
+        elif not mayor and not minor:
+            message = ['Need input amount for mayor or minor']
+            log_message('ERROR', message)
+        elif mayor:
+            response = self.placeOrder(book, side, order_type, mayor=mayor)
+        elif minor:
+            response = self.placeOrder(book, side, order_type, minor=minor)
         return response
 
-    def sellMarket(self, book: str):
+    def sellMarket(self, book: str, mayor: str = '', minor: str = ''):
         side = 'sell'
         order_type = 'market'
-        response = self.placeOrder(book, side, order_type)
+        response = {'success': False}
+        if mayor and minor:
+            message = ['Can only input amount for mayor or minor in sellMarket']
+            log_message('ERROR', message)
+        elif not mayor and not minor:
+            message = ['Need input amount for mayor or minor']
+            log_message('ERROR', message)
+        elif mayor:
+            response = self.placeOrder(book, side, order_type, mayor=mayor)
+        elif minor:
+            response = self.placeOrder(book, side, order_type, minor=minor)
         return response
 
     def buyLimit(self, book: str, price: str, mayor: str, minor: str, time_in_force: str):
