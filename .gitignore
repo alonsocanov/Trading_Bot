@@ -1,4 +1,4 @@
-*.DS_Sore
+*.DS_Store
 config/credentials.json
 **__pycache__**
 **logs**

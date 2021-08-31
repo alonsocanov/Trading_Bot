@@ -1,5 +1,6 @@
-from datetime import date, timedelta
+from datetime import date, timedelta, datetime
 import json
+import pandas as pd
 import os
 import sys
 from logs import log_message
@@ -47,7 +48,7 @@ def getYesterday():
 
 
 def getDateTime():
-    now = date.today()
+    now = datetime.today()
     return now.strftime("%Y-%m-%d %H:%M:%S")
 
 
@@ -55,83 +56,77 @@ def getCurrentDirectory():
     return os.path.dirname(os.path.realpath(__file__))
 
 
-def createFile(dir: str, ext: str):
+def csvPath():
+    dir = 'data'
     today = getDate()
     current_dir = getCurrentDirectory()
     log_dir = os.path.join(current_dir, dir)
-    if os.path.dirname(log_dir):
-        file_name = '.'.join([today, ext.strip('.')])
-        file_path = os.path.join(log_dir, file_name)
-        if not os.path.isfile(file_path):
-            file = open(file_path, 'x')
-            file.close()
-        return file_path
-    else:
+    if not os.path.isdir(log_dir):
+        print(log_dir)
+        os.mkdir(log_dir)
         message = ['Directory does not exist:', dir]
-        log_message('ERROR', message)
-        sys.exit('Could not find directory')
+        log_message('WARNING', message)
+    file_name = '.'.join([today, 'csv'])
+    file_path = os.path.join(log_dir, file_name)
+    return file_path
 
 
-def jsonAppend(file_path: str, data: dict):
-    if isinstance(data, dict):
-        if os.path.isfile(file_path):
-            file = open(file_path, 'a')
-            json.dump(data, file)
-            file.close()
-        else:
-            message = ['File does not exist:', file_path]
-            log_message('ERROR', message)
-            sys.exit('File does not exist')
+def createCsvFile(file_path, data):
+    df = pd.DataFrame(data=data)
+    df.to_csv(file_path, index=False)
+    message = ['Creating CSV file:', file_path]
+    log_message('INFO', message)
+
+
+def appendCsvFile(file_path: str, data: dict):
+    df = pd.read_csv(file_path)
+    new_data = pd.DataFrame(data=data)
+    df = df.append(new_data, ignore_index=True)
+    df.to_csv(file_path, index=False)
+    message = ['Writing to file:', file_path]
+    log_message('INFO', message)
+
+
+def cvsFileAppend(data: dict):
+    file_path = csvPath()
+    # if file has not being created today
+    if not os.path.isfile(file_path):
+        createCsvFile(file_path, data)
+    # only add new data to existing file
     else:
-        message = ['Variable not a dictionary:', data]
-        log_message('ERROR', message)
-        sys.exit('Variable not a dictionar')
+        appendCsvFile(file_path, data)
+    return file_path
 
 
-def historyData(transaction: str, amount: float or str, price: float or str, percentage: float or str):
-
+def historyData(transaction, assets, amount, price, amount_received, percentage):
+    '''
+    Creates dictionary with necessary data
+    '''
     data = dict()
-    data['date'] = getDateTime()
+    data['date time'] = [getDateTime()]
+    data['assets'] = [assets]
     transaction = transaction.upper().strip()
     if transaction == 'BUY':
-        data['transaction'] = 'BUY'
+        data['transaction'] = ['BUY']
     elif transaction == 'SELL':
-        data['transaction'] = 'SELL'
+        data['transaction'] = ['SELL']
     else:
         message = ['Transaction not in options [BUY, SELL]:', transaction]
         log_message('WARNING', message)
-    data['price'] = price
-    data['amount'] = amount
-    data['perrcentage'] = percentage
-
+    data['price'] = [price]
+    data['amount'] = [amount]
+    data['obtained'] = [amount_received]
+    data['percentage'] = [percentage]
     return data
 
 
-def readJson(file_path):
-    data = None
-    if os.path.isfile(file_path):
-        file = open(file_path)
-        data = json.load(file)
-        file.close()
-    else:
-        message = ['File does not exist:', file_path]
-        log_message('ERROR', message)
-    return data
-
-
-def getPreviousData(data: dict):
-    prev_data = None
-    # check in history if program stopped
-    if not data:
-        # check if a file today exists
-        today = getDate()
-        file_path = 'data/' + today + '.json'
-        prev_data = readJson(file_path)
-        # if temp data check previous day
-        if not prev_data:
-            yesterday = getYesterday()
-            file_path = 'data/' + yesterday + '.json'
-            prev_data = readJson(file_path)
-    else:
-        prev_data = data
-    return prev_data
+# def readLastInputCsv(file_path):
+#     data = None
+#     if os.path.isfile(file_path):
+#         file = open(file_path)
+#         data = json.load(file)
+#         file.close()
+#     else:
+#         message = ['File does not exist:', file_path]
+#         log_message('ERROR', message)
+#     return data

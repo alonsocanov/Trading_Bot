@@ -9,12 +9,12 @@ def startBot():
     bot = api.Bitso('config/credentials.json')
     trade_config = utils.readJson('config/trade.json')
 
-    history_file = utils.createFile('data', 'json')
-
     upward_trend_threshold = trade_config['UPWARD_TREND_THRESHOLD']
     dip_threshold = trade_config['DIP_THRESHOLD']
     profit_threshold = trade_config['PROFIT_THRESHOLD']
     stop_loss_threshold = trade_config['STOP_LOSS_THRESHOLD']
+
+    mayor_minor = 'btc_mxn'
 
     my_assets = bot.assets
     if 'mxn' in my_assets:
@@ -28,13 +28,12 @@ def startBot():
     for idx in range(1):
         btc_fee = bot.getTakerPercentageFee('btc_mxn')
 
-        btc_mxn = trade.mayorMinorConversion(balance, btc_bids)
-        total_btc = trade.tradeWithFee(btc_mxn, btc_fee)
-
         # trying to buy
         if is_next_operation_buy:
             btc_bids = bot.getBids('btc_mxn')
             bid_current_price = btc_bids[0]['price']
+            btc_mxn = trade.mayorMinorConversion(balance, btc_bids)
+            total_btc = trade.tradeWithFee(btc_mxn, btc_fee)
 
             percentage_diff = trade.percentageDifference(
                 bid_current_price, last_operation_price)
@@ -45,12 +44,17 @@ def startBot():
                 message = ['Bot tip: BUY']
                 log_message('INFO', message)
                 # response = bot.buyMarket('btc_mxn', minor='100.00')
+                response = {'success': True}  # supposition
                 log_message('INFO', response)
                 # if success change is_next operation
                 if response['success']:
                     message = ['Bought Currency: BTC']
                     log_message('INFO', message)
                     is_next_operation_buy = False
+                    data = utils.historyData('BUY', 'btc_mxn', '100.00', bid_current_price,
+                                             total_btc, percentage_diff)
+                    utils.cvsFileAppend(data)
+
                 else:
                     message = ['Could NOT BUY currency: BTC']
                     log_message('ERROR', message)
@@ -59,7 +63,7 @@ def startBot():
                 message = ['Bot tip: STAY']
                 log_message('INFO', message)
 
-        # trying to sell
+        # sell
         else:
             btc_asks = bot.getAsks('btc_mxn')
             ask_current_price = btc_asks[0]['price']
@@ -69,7 +73,7 @@ def startBot():
             action = trade.tryToSell(
                 percentage_diff, profit_threshold, stop_loss_threshold)
             # sell
-            response = bot.sellMarket('btc_mxn')
+            # response = bot.sellMarket('btc_mxn', mayor='')
             # if success change is_next operation
             if response['success']:
                 message = ['Sold Currency: BTC']
