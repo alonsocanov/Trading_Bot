@@ -73,16 +73,11 @@ def percentageDifference(price, last_operation_price):
     return percentage_diff
 
 
-def attemptToMakeTrade(is_next_operation_buy, last_operation_price, price, limit_threshold, trend):
-    percentage_diff = percentageDifference(price, last_operation_price)
+def attemptToMakeTrade(is_next_operation_buy, percentage_diff, limit_threshold, trend):
     if is_next_operation_buy:
-        action = tryToBuy(percentage_diff, trend, limit_threshold)
+        action = tryToBuy(percentage_diff, limit_threshold, trend)
     else:
-        action = tryToSell(percentage_diff, trend, limit_threshold)
-
-    # last_operation_price = utils.floatToStr(last_operation_price)
-    # is_next_operation_buy = utils.floatToStr(last_operation_price)
-    # return last_operation_price, is_next_operation_buy
+        action = tryToSell(percentage_diff, limit_threshold, trend)
     return action
 
 
