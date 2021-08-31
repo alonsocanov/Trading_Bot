@@ -3,6 +3,8 @@ import json
 import pandas as pd
 import os
 import sys
+
+from requests.models import Response
 from logs import log_message
 import time
 
@@ -98,26 +100,58 @@ def cvsFileAppend(data: dict):
     return file_path
 
 
-def historyData(transaction, assets, amount, price, amount_received, percentage):
+def dataDict(success, transaction, assets, amount, price, amount_received, percentage):
     '''
     Creates dictionary with necessary data
     '''
     data = dict()
     data['date time'] = [getDateTime()]
+    data['success'] = [success]
     data['assets'] = [assets]
     transaction = transaction.upper().strip()
-    if transaction == 'BUY':
+    if not success:
+        data['transaction'] = ['ERROR']
+    elif transaction == 'BUY':
         data['transaction'] = ['BUY']
     elif transaction == 'SELL':
         data['transaction'] = ['SELL']
-    else:
-        message = ['Transaction not in options [BUY, SELL]:', transaction]
-        log_message('WARNING', message)
     data['price'] = [price]
     data['amount'] = [amount]
     data['obtained'] = [amount_received]
     data['percentage'] = [percentage]
     return data
+
+
+def saveHistory(success, transaction, assets, amount, price, amount_received, percentage):
+    data = dataDict(success, transaction, assets, amount,
+                    price, amount_received, percentage)
+    cvsFileAppend(data)
+    # if transaction a success
+    if success:
+        # if bught crypto switch to selling in next loop
+        if transaction == 'BUY':
+            message = ['Bought crypto']
+            is_next_operation_buy = False
+        # if sold crypto switch to buying in next loop
+        else:
+            message = ['Sold crypto']
+            is_next_operation_buy = True
+        log_message('INFO', message)
+    # if error in transaction
+    else:
+        # try to buy again in next loop since it failed to buy
+        if transaction == 'BUY':
+            message = ['Could NOT BUY crypto']
+            is_next_operation_buy = True
+        # try to sell again in next loop since it failed to sell
+        else:
+            message = ['Could NOT SELL crypto']
+            is_next_operation_buy = False
+
+            log_message('WARNING', message)
+        is_next_operation_buy = True
+
+    return is_next_operation_buy
 
 
 # def readLastInputCsv(file_path):
