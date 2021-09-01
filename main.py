@@ -23,6 +23,8 @@ def startBot():
     btc_bids = bot.getBids('btc_mxn')
     last_operation_price = btc_bids[0]['price']
 
+    last_data = utils.readLastInputCsv()
+
     is_next_operation_buy = True
 
     for idx in range(1):

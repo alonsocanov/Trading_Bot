@@ -3,6 +3,7 @@ import json
 import pandas as pd
 import os
 import sys
+from pandas.core.algorithms import isin
 
 from requests.models import Response
 from logs import log_message
@@ -58,9 +59,11 @@ def getCurrentDirectory():
     return os.path.dirname(os.path.realpath(__file__))
 
 
-def csvPath():
+def csvPath(file=''):
     dir = 'data'
     today = getDate()
+    if file:
+        today = file
     current_dir = getCurrentDirectory()
     log_dir = os.path.join(current_dir, dir)
     if not os.path.isdir(log_dir):
@@ -87,6 +90,29 @@ def appendCsvFile(file_path: str, data: dict):
     df.to_csv(file_path, index=False)
     message = ['Writing to file:', file_path]
     log_message('INFO', message)
+
+
+def readLastInputCsv():
+    file_path = csvPath()
+    data = None
+    if not os.path.isfile(file_path):
+        message = ['Todays CSV file has not being created:', file_path]
+        log_message('INFO', message)
+        # try to fetch yesterdays data
+        yesterday = getYesterday()
+        file_path = csvPath(yesterday)
+    if os.path.isfile(file_path):
+        df = pd.read_csv(file_path)
+        data = df.tail(1).to_dict('list')
+        # removin lists from dictionary
+        for key in list(data.keys()):
+            if isinstance(data[key], list):
+                data[key] = data[key][0]
+    else:
+        message = ['CSV File does not exist:', file_path]
+        log_message('WARNING', message)
+
+    return data
 
 
 def cvsFileAppend(data: dict):
@@ -152,15 +178,3 @@ def saveHistory(success, transaction, assets, amount, price, amount_received, pe
         is_next_operation_buy = True
 
     return is_next_operation_buy
-
-
-# def readLastInputCsv(file_path):
-#     data = None
-#     if os.path.isfile(file_path):
-#         file = open(file_path)
-#         data = json.load(file)
-#         file.close()
-#     else:
-#         message = ['File does not exist:', file_path]
-#         log_message('ERROR', message)
-#     return data
