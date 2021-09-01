@@ -3,7 +3,7 @@ import json
 import pandas as pd
 import os
 import sys
-from pandas.core.algorithms import isin
+
 
 from requests.models import Response
 from logs import log_message
@@ -67,7 +67,6 @@ def csvPath(file=''):
     current_dir = getCurrentDirectory()
     log_dir = os.path.join(current_dir, dir)
     if not os.path.isdir(log_dir):
-        print(log_dir)
         os.mkdir(log_dir)
         message = ['Directory does not exist:', dir]
         log_message('WARNING', message)
