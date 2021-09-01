@@ -55,7 +55,7 @@ def startBot():
         btc_mxn = trade.mayorMinorConversion(balance, current_prices)
 
         total_btc = trade.tradeWithFee(btc_mxn, fee)
-        # this percentage difference is incorrect
+        # this percentage difference is incorrect mus compare
         percentage_diff = trade.percentageDifference(
             current_price, last_operation_price)
 
