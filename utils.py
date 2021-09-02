@@ -3,9 +3,6 @@ import json
 import pandas as pd
 import os
 import sys
-
-
-from requests.models import Response
 from logs import log_message
 import time
 

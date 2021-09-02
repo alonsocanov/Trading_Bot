@@ -2,11 +2,13 @@ from datetime import date, timedelta, datetime
 import pandas as pd
 import os
 
+# missing to update today and yesterday path
+
 
 class CsvHistory:
     def __init__(self, directory='data'):
-        self.today_path = ''
-        self.yesterday_path = ''
+        self.today_path = self.today_path()
+        self.yesterday_path = self.yesterday_path()
         self.__data = dict()
         self.__directory = directory
 
@@ -52,7 +54,7 @@ class CsvHistory:
             new_data = pd.DataFrame(data=data)
             df = df.append(new_data, ignore_index=True)
             df.to_csv(self.today_path, index=False)
-
+        # store new data in variable for further reference
         self.__data = data
 
     def getData(self):

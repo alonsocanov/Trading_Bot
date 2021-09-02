@@ -2,12 +2,14 @@ from logs import log_message
 import utils
 import api
 import trade
+import csv_history
 
 
 def startBot():
     log_message('INFO', 'Started bot')
     bot = api.Bitso('config/credentials.json')
     trade_config = utils.readJson('config/trade.json')
+    trade_history = csv_history.CsvHistory()
 
     upward_trend_threshold = trade_config['UPWARD_TREND_THRESHOLD']
     dip_threshold = trade_config['DIP_THRESHOLD']
