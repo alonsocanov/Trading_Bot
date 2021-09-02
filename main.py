@@ -9,7 +9,7 @@ def startBot():
     log_message('INFO', 'Started bot')
     bot = api.Bitso('config/credentials.json')
     trade_config = utils.readJson('config/trade.json')
-    trade_history = csv_history.CsvHistory()
+    history = csv_history.CsvHistory()
 
     upward_trend_threshold = trade_config['UPWARD_TREND_THRESHOLD']
     dip_threshold = trade_config['DIP_THRESHOLD']
@@ -25,7 +25,7 @@ def startBot():
     btc_bids = bot.getBids('btc_mxn')
     last_operation_price = btc_bids[0]['price']
 
-    last_data = utils.readLastInputCsv()
+    last_data = history.getData()
 
     is_next_operation_buy = True
 
@@ -78,8 +78,14 @@ def startBot():
                 # response = bot.sellMarket('btc_mxn', minor='100.00')
                 response = {'success': True}  # supposition
                 log_message('INFO', response)
-            is_next_operation_buy = utils.saveHistory(response['success'], 'BUY', 'btc_mxn',
-                                                      '100.00', current_price, total_btc, percentage_diff)
+
+            history.setData(response['success'], is_next_operation_buy, 'btc_mxn',
+                            '100.00', current_price, total_btc, percentage_diff)
+            history.appendData()
+
+            is_next_operation_buy = utils.nextOperation(
+                response['success'], is_next_operation_buy)
+
         else:
             message = ['Bot tip: STAY']
             log_message('INFO', message)

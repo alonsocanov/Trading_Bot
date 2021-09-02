@@ -7,10 +7,13 @@ import os
 
 class CsvHistory:
     def __init__(self, directory='data'):
-        self.today_path = self.today_path()
-        self.yesterday_path = self.yesterday_path()
+        self.today_path = ''
+        self.yesterday_path = ''
         self.__data = dict()
         self.__directory = directory
+
+        self.todayPath()
+        self.yesterdayPath()
 
     def historyDirectory(self):
         current_dir = CsvHistory.getCurrentDirectory()
@@ -29,7 +32,7 @@ class CsvHistory:
         today = CsvHistory.getYesterday()
         file_name = '.'.join([today, 'csv'])
         history_directory = self.historyDirectory()
-        self.today_path = os.path.join(history_directory, file_name)
+        self.yesterday_path = os.path.join(history_directory, file_name)
 
     def csvPath(self):
         if os.path.isfile(self.today_path):
@@ -45,17 +48,17 @@ class CsvHistory:
             df.to_csv(self.today_path, index=False)
             self.__data = data
 
-    def append(self, data: dict()):
+    def appendData(self):
         if not os.path.isfile(self.today_path):
-            df = pd.DataFrame(data=data)
+            df = pd.DataFrame(data=self.__data)
             df.to_csv(self.today_path, index=False)
         else:
             df = pd.read_csv(self.today_path)
-            new_data = pd.DataFrame(data=data)
+            new_data = pd.DataFrame(data=self.__data)
             df = df.append(new_data, ignore_index=True)
             df.to_csv(self.today_path, index=False)
         # store new data in variable for further reference
-        self.__data = data
+        # self.__data = data
 
     def getData(self):
         # if corrects data already stored
@@ -70,6 +73,25 @@ class CsvHistory:
                     if isinstance(data[key], list):
                         self.__data[key] = data[key][-1]
         return self.__data
+
+    def setData(self, success: str, transaction: bool, assets, amount, price, amount_received, percentage):
+        '''
+        Creates dictionary with necessary data
+        '''
+
+        self.__data['date time'] = [CsvHistory.getDateTime()]
+        self.__data['success'] = [success]
+        self.__data['assets'] = [assets]
+        if not success:
+            self.__data['transaction'] = ['ERROR']
+        elif transaction:
+            self.__data['transaction'] = ['BUY']
+        elif not transaction:
+            self.__data['transaction'] = ['SELL']
+        self.__data['price'] = [price]
+        self.__data['amount'] = [amount]
+        self.__data['obtained'] = [amount_received]
+        self.__data['percentage'] = [percentage]
 
     @staticmethod
     def getDate():
