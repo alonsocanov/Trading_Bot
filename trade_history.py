@@ -5,7 +5,7 @@ import os
 # missing to update today and yesterday path
 
 
-class CsvHistory:
+class TradeHistory:
     def __init__(self, directory='data'):
         self.today_path = ''
         self.yesterday_path = ''
@@ -16,39 +16,44 @@ class CsvHistory:
         self.yesterdayPath()
 
     def historyDirectory(self):
-        current_dir = CsvHistory.getCurrentDirectory()
+        current_dir = TradeHistory.getCurrentDirectory()
         history_dir = os.path.join(current_dir, self.__directory)
         if not os.path.isdir(history_dir):
             os.mkdir(history_dir)
         return history_dir
 
     def todayPath(self):
-        today = CsvHistory.getDate()
+        today = TradeHistory.getDate()
         file_name = '.'.join([today, 'csv'])
         history_directory = self.historyDirectory()
         self.today_path = os.path.join(history_directory, file_name)
 
     def yesterdayPath(self):
-        today = CsvHistory.getYesterday()
+        today = TradeHistory.getYesterday()
         file_name = '.'.join([today, 'csv'])
         history_directory = self.historyDirectory()
         self.yesterday_path = os.path.join(history_directory, file_name)
 
     def csvPath(self):
+        self.todayPath()
+        self.yesterdayPath()
         if os.path.isfile(self.today_path):
             return self.today_path
         elif os.path.isfile(self.yesterday_path):
             return self.yesterday_path
-        else:
-            return None
-
-    def createCsv(self, data: dict()):
-        if not os.path.isfile(self.today_path):
-            df = pd.DataFrame(data=data)
-            df.to_csv(self.today_path, index=False)
-            self.__data = data
+        elif os.listdir(self.historyDirectory()):
+            files = os.listdir(self.historyDirectory())
+            files = [file for file in files if file.endswith('.csv')]
+            if files:
+                files.sort()
+                path = os.path.join(self.historyDirectory(), files[-1])
+                return path
+            else:
+                return ''
 
     def appendData(self):
+        self.todayPath()
+        self.yesterdayPath()
         if not os.path.isfile(self.today_path):
             df = pd.DataFrame(data=self.__data)
             df.to_csv(self.today_path, index=False)
@@ -62,7 +67,7 @@ class CsvHistory:
 
     def getData(self):
         # if corrects data already stored
-        if 'date time' in self.__data and CsvHistory.getDate() in self.__data['date time']:
+        if 'date time' in self.__data and TradeHistory.getDate() in self.__data['date time']:
             return self.__data
         else:
             file_path = self.csvPath()
@@ -79,7 +84,7 @@ class CsvHistory:
         Creates dictionary with necessary data
         '''
 
-        self.__data['date time'] = [CsvHistory.getDateTime()]
+        self.__data['date time'] = [TradeHistory.getDateTime()]
         self.__data['success'] = [success]
         self.__data['assets'] = [assets]
         if not success:
