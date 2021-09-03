@@ -2,14 +2,14 @@ from logs import log_message
 import utils
 import api
 import trade
-import csv_history
+import trade_history
 
 
 def startBot():
     log_message('INFO', 'Started bot')
     bot = api.Bitso('config/credentials.json')
     trade_config = utils.readJson('config/trade.json')
-    history = csv_history.CsvHistory()
+    history = trade_history.TradeHistory()
 
     upward_trend_threshold = trade_config['UPWARD_TREND_THRESHOLD']
     dip_threshold = trade_config['DIP_THRESHOLD']
@@ -19,18 +19,16 @@ def startBot():
     mayor_minor = 'btc_mxn'
 
     my_assets = bot.assets
-    if 'mxn' in my_assets:
-        asset = 'mxn'
-    balance = bot.getAvailableBalance(asset)
-    btc_bids = bot.getBids('btc_mxn')
-    last_operation_price = btc_bids[0]['price']
 
-    last_data = history.getData()
+    data = history.getData()
+    amount = data['amount']
+    if not data:
+        amount = bot.getBalance('mxn')
 
-    is_next_operation_buy = True
+    is_next_operation_buy = utils.nextOperation(
+        data['success'], data['transaction'])
 
     for idx in range(1):
-
         # buy data
         if is_next_operation_buy:
             # taker fee
@@ -56,48 +54,42 @@ def startBot():
             limit_threshold = profit_threshold
             trend = stop_loss_threshold
 
-        btc_mxn = trade.mayorMinorConversion(balance, current_prices)
+        total = trade.conversion(amount, current_prices)
+        total = trade.tradeWithFee(total, fee)
+        print(data)
 
-        total_btc = trade.tradeWithFee(btc_mxn, fee)
-        # this percentage difference is incorrect mus compare
+        # sure to compare crypto with crypto and currency with currency
         percentage_diff = trade.percentageDifference(
-            current_price, last_operation_price)
+            data['obtained'], total)
 
         action = trade.attemptToMakeTrade(
             is_next_operation_buy, percentage_diff, limit_threshold, trend)
         # buy or sell action
         if action:
+            # buy
             if is_next_operation_buy:
-                message = ['Bot tip: BUY']
-                log_message('INFO', message)
                 # response = bot.buyMarket('btc_mxn', minor='100.00')
-                response = {'success': True}  # supposition
+                response = {'success': False}  # supposition
+            # sell
             else:
-                message = ['Bot tip: SELL']
-                log_message('INFO', message)
                 # response = bot.sellMarket('btc_mxn', minor='100.00')
-                response = {'success': True}  # supposition
-                log_message('INFO', response)
+                response = {'success': False}  # supposition
 
-            history.setData(response['success'], is_next_operation_buy, 'btc_mxn',
-                            '100.00', current_price, total_btc, percentage_diff)
-            history.appendData()
+            if response['success']:
+                history.setData(response['success'], is_next_operation_buy, mayor_minor,
+                                amount, current_price, total, percentage_diff)
+                history.appendData()
+            else:
+                message = ['Unable to make trade']
+                log_message('ERROR', message)
 
             is_next_operation_buy = utils.nextOperation(
                 response['success'], is_next_operation_buy)
-
-        else:
-            message = ['Bot tip: STAY']
-            log_message('INFO', message)
 
         utils.sleep(1)
 
 
 def main():
-
-    is_next_operation_buy = True
-
-    last_operation_price = 100.00
 
     startBot()
 
