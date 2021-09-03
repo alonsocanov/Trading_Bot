@@ -16,7 +16,7 @@ def tradeWithFee(amount, fee):
     return total
 
 
-def mayorMinorConversion(amount, books: list):
+def conversion(amount, books: list):
     amount = utils.strToFloat(amount)
     total = 0
     needed = None
@@ -38,37 +38,32 @@ def mayorMinorConversion(amount, books: list):
 
 def tryToBuy(percentage_diff, upward_trend_threshold, dip_threshold):
     percentage_diff = utils.strToFloat(percentage_diff)
-    message = ['Percentage difference:', percentage_diff, '%']
-    log_message('INFO', message)
     buy = False
+    message = ['Bot tip: STAY']
     if percentage_diff >= upward_trend_threshold or percentage_diff <= dip_threshold:
-        log_message('INFO', 'BUY')
+        message = ['Bot tip: BUY']
         buy = True
-    return True
+    log_message('INFO', message)
+    return buy
 
 
 def tryToSell(percentage_diff, profit_threshold, stop_loss_threshold):
     percentage_diff = utils.strToFloat(percentage_diff)
-    message = ['Percentage difference:', percentage_diff]
-    log_message('INFO', message)
     sell = False
+    message = ['Bot tip: STAY']
     if percentage_diff >= profit_threshold or percentage_diff <= stop_loss_threshold:
-        log_message('INFO', 'SELL')
+        message = ['Bot tip: SELL']
         sell = True
+    log_message('INFO', message)
     return sell
 
 
-def percentageDifference(price, last_operation_price):
-    message = ['Current market price:', price]
-    log_message('INFO', message)
-    message = ['Last operation price:', last_operation_price]
-    log_message('INFO', message)
-    price = utils.strToFloat(price)
-    last_operation_price = utils.strToFloat(last_operation_price)
-    price_diff = price - last_operation_price
-    percentage_diff = price_diff / last_operation_price * 100
+def percentageDifference(prior_total, current_total):
+    current_total = utils.strToFloat(current_total)
+    prior_total = utils.strToFloat(prior_total)
+    percentage_diff = -1 * (100.0 - (current_total * 100.0 / prior_total))
     percentage_diff = utils.floatToStr(percentage_diff)
-    message = ['Percentage difference:', price_diff, '%']
+    message = ['Percentage difference:', percentage_diff, '%']
     log_message('INFO', message)
     return percentage_diff
 
@@ -79,13 +74,3 @@ def attemptToMakeTrade(is_next_operation_buy, percentage_diff, limit_threshold, 
     else:
         action = tryToSell(percentage_diff, limit_threshold, trend)
     return action
-
-
-def trackBotInvest():
-    # get total invested and what not to move
-    my_invest = 300
-    currency = 'MXN'
-    currency_invested_to = ''
-    crypto_amount = ''
-
-    pass

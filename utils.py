@@ -36,29 +36,32 @@ def readJson(file_path: str):
         sys.exit('Error opening file')
 
 
+def operationToBool(current_opertion):
+    if isinstance(current_opertion, str):
+        if current_opertion == 'BUY':
+            current_opertion = True
+        else:
+            current_opertion = False
+    return current_opertion
+
+
 def nextOperation(success, current_opertion):
+    current_opertion = operationToBool(current_opertion)
     # if transaction a success
     if success:
         # if bught crypto switch to selling in next loop
         if current_opertion:
-            message = ['Bought crypto']
             is_next_operation_buy = False
         # if sold crypto switch to buying in next loop
         else:
-            message = ['Sold crypto']
             is_next_operation_buy = True
-        log_message('INFO', message)
     # if error in transaction
     else:
         # try to buy again in next loop since it failed to buy
         if current_opertion:
-            message = ['Could NOT BUY crypto']
             is_next_operation_buy = True
         # try to sell again in next loop since it failed to sell
         else:
-            message = ['Could NOT SELL crypto']
             is_next_operation_buy = False
-
-            log_message('WARNING', message)
 
     return is_next_operation_buy
