@@ -62,8 +62,6 @@ class TradeHistory:
             new_data = pd.DataFrame(data=self.__data)
             df = df.append(new_data, ignore_index=True)
             df.to_csv(self.today_path, index=False)
-        # store new data in variable for further reference
-        # self.__data = data
 
     def getData(self):
         # if corrects data already stored

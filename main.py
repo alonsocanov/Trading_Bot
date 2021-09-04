@@ -2,14 +2,16 @@ from logs import log_message
 import utils
 import api
 import trade
-import trade_history
+from trade_history import TradeHistory
+from price_history import PriceHistory
 
 
 def startBot():
     log_message('INFO', 'Started bot')
     bot = api.Bitso('config/credentials.json')
     trade_config = utils.readJson('config/trade.json')
-    history = trade_history.TradeHistory()
+    trade_hist = TradeHistory()
+    price_hist = PriceHistory()
 
     upward_trend_threshold = trade_config['UPWARD_TREND_THRESHOLD']
     dip_threshold = trade_config['DIP_THRESHOLD']
@@ -20,7 +22,7 @@ def startBot():
 
     my_assets = bot.assets
 
-    data = history.getData()
+    data = trade_hist.getData()
     amount = data['amount']
     if not data:
         amount = bot.getBalance('mxn')
@@ -29,14 +31,16 @@ def startBot():
         data['success'], data['transaction'])
 
     for idx in range(1):
+        bid_prices = bot.getBids(mayor_minor)
+        ask_prices = bot.getAsks(mayor_minor)
         # buy data
         if is_next_operation_buy:
             # taker fee
-            fee = bot.getTakerPercentageFee('btc_mxn')
+            fee = bot.getTakerPercentageFee(mayor_minor)
             # list of current bids
-            current_prices = bot.getBids('btc_mxn')
+            current_prices = bid_prices
             # current bid
-            current_price = current_prices[0]['price']
+            current_price = bid_prices[0]['price']
             #
             limit_threshold = upward_trend_threshold
             #
@@ -45,18 +49,17 @@ def startBot():
         # sell data
         else:
             # maker fee
-            fee = bot.getMakerPercentageFee('btc_mxn')
+            fee = bot.getMakerPercentageFee(mayor_minor)
             # list of current asks
-            current_prices = bot.getAsks('btc_mxn')
+            current_prices = ask_prices
             # current ask
-            current_price = current_prices[0]['price']
+            current_price = ask_prices[0]['price']
 
             limit_threshold = profit_threshold
             trend = stop_loss_threshold
 
         total = trade.conversion(amount, current_prices)
         total = trade.tradeWithFee(total, fee)
-        print(data)
 
         # sure to compare crypto with crypto and currency with currency
         percentage_diff = trade.percentageDifference(
@@ -76,15 +79,20 @@ def startBot():
                 response = {'success': False}  # supposition
 
             if response['success']:
-                history.setData(response['success'], is_next_operation_buy, mayor_minor,
-                                amount, current_price, total, percentage_diff)
-                history.appendData()
+                trade_hist.setData(response['success'], is_next_operation_buy, mayor_minor,
+                                   amount, current_price, total, percentage_diff)
+                trade_hist.appendData()
             else:
                 message = ['Unable to make trade']
                 log_message('ERROR', message)
 
             is_next_operation_buy = utils.nextOperation(
                 response['success'], is_next_operation_buy)
+
+        ask = ask_prices[0]['price']
+        bid = bid_prices[0]['price']
+        price_hist.setData(bid, ask)
+        price_hist.appendData()
 
         utils.sleep(1)
 
