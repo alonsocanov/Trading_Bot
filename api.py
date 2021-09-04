@@ -7,10 +7,13 @@ import hmac
 import hashlib
 import requests
 import json
-from logs import log_message
+from logs import Log
 import os
 import sys
 import itertools
+
+
+log = Log()
 
 
 class Bitso:
@@ -105,14 +108,14 @@ class Bitso:
         fee = self.getFees(mayor_minor)[mayor_minor]['taker_fee_percent']
         message = ['Taker percentage fee for',
                    mayor_minor.upper(), ':', fee, '%']
-        log_message('INFO', message)
+        log.message('INFO', message)
         return fee
 
     def getMakerPercentageFee(self, mayor_minor: str):
         fee = self.getFees(mayor_minor)[mayor_minor]['maker_fee_percent']
         message = ['Maker percentage fee for',
                    mayor_minor.upper(), ':', fee, '%']
-        log_message('INFO', message)
+        log.message('INFO', message)
         return fee
 
     def getBalance(self, currency: list):
@@ -130,7 +133,7 @@ class Bitso:
     def getAvailableBalance(self, currency=str):
         available_balance = self.getBalance(currency)[currency]['available']
         message = ['Available balance :', available_balance, currency.upper()]
-        log_message('INFO', message)
+        log.message('INFO', message)
         return available_balance
 
     def getTrades(self, date=[]):
@@ -185,10 +188,10 @@ class Bitso:
         response = {'success': False}
         if mayor and minor:
             message = ['Can only input amount for mayor or minor']
-            log_message('ERROR', message)
+            log.message('ERROR', message)
         elif not mayor and not minor:
             message = ['Need input amount for mayor or minor']
-            log_message('ERROR', message)
+            log.message('ERROR', message)
         elif mayor:
             response = self.placeOrder(book, side, order_type, mayor=mayor)
         elif minor:
@@ -201,10 +204,10 @@ class Bitso:
         response = {'success': False}
         if mayor and minor:
             message = ['Can only input amount for mayor or minor in sellMarket']
-            log_message('ERROR', message)
+            log.message('ERROR', message)
         elif not mayor and not minor:
             message = ['Need input amount for mayor or minor']
-            log_message('ERROR', message)
+            log.message('ERROR', message)
         elif mayor:
             response = self.placeOrder(book, side, order_type, mayor=mayor)
         elif minor:
@@ -275,7 +278,7 @@ class Bitso:
                         data[book] = self.emptyBalance(book)
                         message = ' '.join(
                             ['Book', book, 'not available.'])
-                        log_message('ERROR', message)
+                        log.message('ERROR', message)
             else:
                 data = all_data
         return data

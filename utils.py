@@ -3,8 +3,12 @@ import json
 import pandas as pd
 import os
 import sys
-from logs import log_message
+# from logs import log_message
+from logs import Log
 import time
+
+
+log = Log()
 
 
 def strToFloat(value: str):
@@ -32,7 +36,7 @@ def readJson(file_path: str):
         return data
     else:
         message = ['Could find file:', file_path]
-        log_message('ERROR', message)
+        log.message('ERROR', message)
         sys.exit('Error opening file')
 
 

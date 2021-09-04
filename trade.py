@@ -1,6 +1,9 @@
-from logs import log_message
+from logs import Log
 import api
 import utils
+
+
+log = Log()
 
 
 def tradeWithFee(amount, fee):
@@ -12,7 +15,7 @@ def tradeWithFee(amount, fee):
 
     total = utils.floatToStr(total)
     message = ['Trade with fee will give:', total]
-    log_message('INFO', message)
+    log.message('INFO', message)
     return total
 
 
@@ -32,7 +35,7 @@ def conversion(amount, books: list):
 
     total = utils.floatToStr(total)
     message = ['Trade will give:', total]
-    log_message('INFO', message)
+    log.message('INFO', message)
     return total
 
 
@@ -43,7 +46,7 @@ def tryToBuy(percentage_diff, upward_trend_threshold, dip_threshold):
     if percentage_diff >= upward_trend_threshold or percentage_diff <= dip_threshold:
         message = ['Bot tip: BUY']
         buy = True
-    log_message('INFO', message)
+    log.message('INFO', message)
     return buy
 
 
@@ -54,7 +57,7 @@ def tryToSell(percentage_diff, profit_threshold, stop_loss_threshold):
     if percentage_diff >= profit_threshold or percentage_diff <= stop_loss_threshold:
         message = ['Bot tip: SELL']
         sell = True
-    log_message('INFO', message)
+    log.message('INFO', message)
     return sell
 
 
@@ -64,7 +67,7 @@ def percentageDifference(prior_total, current_total):
     percentage_diff = -1 * (100.0 - (current_total * 100.0 / prior_total))
     percentage_diff = utils.floatToStr(percentage_diff)
     message = ['Percentage difference:', percentage_diff, '%']
-    log_message('INFO', message)
+    log.message('INFO', message)
     return percentage_diff
 
 

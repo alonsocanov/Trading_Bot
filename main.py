@@ -1,4 +1,4 @@
-from logs import log_message
+from logs import Log
 import utils
 import api
 import trade
@@ -7,7 +7,8 @@ from price_history import PriceHistory
 
 
 def startBot():
-    log_message('INFO', 'Started bot')
+    log = Log()
+    log.message('INFO', 'Started bot')
     bot = api.Bitso('config/credentials.json')
     trade_config = utils.readJson('config/trade.json')
     trade_hist = TradeHistory()
@@ -23,12 +24,15 @@ def startBot():
     my_assets = bot.assets
 
     data = trade_hist.getData()
-    amount = data['amount']
     if not data:
         amount = bot.getBalance('mxn')
+        is_next_operation_buy = True
+    else:
+        amount = data['amount']
+        success = data['success']
 
-    is_next_operation_buy = utils.nextOperation(
-        data['success'], data['transaction'])
+        is_next_operation_buy = utils.nextOperation(
+            success, data['transaction'])
 
     for idx in range(1):
         bid_prices = bot.getBids(mayor_minor)
@@ -78,16 +82,17 @@ def startBot():
                 # response = bot.sellMarket('btc_mxn', minor='100.00')
                 response = {'success': False}  # supposition
 
-            if response['success']:
-                trade_hist.setData(response['success'], is_next_operation_buy, mayor_minor,
+            success = data['success']
+            if success:
+                trade_hist.setData(success, is_next_operation_buy, mayor_minor,
                                    amount, current_price, total, percentage_diff)
                 trade_hist.appendData()
             else:
                 message = ['Unable to make trade']
-                log_message('ERROR', message)
+                log.message('ERROR', message)
 
             is_next_operation_buy = utils.nextOperation(
-                response['success'], is_next_operation_buy)
+                success, is_next_operation_buy)
 
         ask = ask_prices[0]['price']
         bid = bid_prices[0]['price']
