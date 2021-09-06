@@ -74,7 +74,8 @@ def tryToSell(percentage_diff, profit_threshold, stop_loss_threshold):
 def percentageDifference(prior_total, current_total):
     current_total = utils.strToFloat(current_total)
     prior_total = utils.strToFloat(prior_total)
-    percentage_diff = -1 * (100.0 - (current_total * 100.0 / prior_total))
+    difference = current_total - prior_total
+    percentage_diff = difference * (prior_total / current_total)
     percentage_diff = utils.floatToStr(percentage_diff)
     message = ['Percentage difference:', percentage_diff, '%']
     log.message('INFO', message)

@@ -61,7 +61,7 @@ class TestModules(unittest.TestCase):
         print()
 
     def test_percentage_difference(self):
-        print('Testing attemps to make trades and percentage differences')
+        print('Testing percentage differences')
         prior_total = 1000.00
         current_total = 1001.00
         print('Prior Total:', prior_total)
@@ -69,6 +69,47 @@ class TestModules(unittest.TestCase):
         percentage_diff = trade.percentageDifference(
             prior_total, current_total)
         print('Percentage Difference:', percentage_diff)
+        print()
+
+    def test_trade_buy_attempt(self):
+        print('Test BUY attempt acording to config')
+        UPWARD_TREND_THRESHOLD = 3.0
+        DIP_THRESHOLD = -1.00
+        prior_total = 100.00
+        current_total = 102.00
+        operation_buy = True
+        print('Prior Total:', prior_total)
+        print('Current total:', current_total)
+        print('Operation Buy:', operation_buy)
+        percentage_diff = trade.percentageDifference(
+            prior_total, current_total)
+        print('Percentage Difference:', percentage_diff)
+        limit_threshold = UPWARD_TREND_THRESHOLD
+        trend = DIP_THRESHOLD
+        action = trade.attemptToMakeTrade(
+            operation_buy, percentage_diff, limit_threshold, trend)
+        print('BUY action:', action)
+        print()
+
+    def test_trade_sell_attempt(self):
+        print('Test SELL attempt acording to config')
+        PROFIT_THRESHOLD = 2.5
+        STOP_LOSS_THRESHOLD = -2.00
+        prior_total = 100.00
+        current_total = 101.00
+        operation_buy = False
+        print('Prior Total:', prior_total)
+        print('Current total:', current_total)
+        print('Operation Buy:', operation_buy)
+        percentage_diff = trade.percentageDifference(
+            prior_total, current_total)
+        print('Percentage Difference:', percentage_diff)
+        limit_threshold = PROFIT_THRESHOLD
+        trend = STOP_LOSS_THRESHOLD
+        action = trade.attemptToMakeTrade(
+            operation_buy, percentage_diff, limit_threshold, trend)
+        print('BUY action:', action)
+        print()
 
 
 if __name__ == '__main__':
@@ -77,3 +118,5 @@ if __name__ == '__main__':
     test_bot.test_api()
     test_bot.test_trade_conversions()
     test_bot.test_percentage_difference()
+    test_bot.test_trade_buy_attempt()
+    test_bot.test_trade_sell_attempt()
