@@ -1,5 +1,7 @@
+from math import gamma
 import os
 from datetime import date, timedelta, datetime
+from numpy.lib.function_base import gradient
 import pandas as pd
 import matplotlib.pyplot as plt
 from sklearn import linear_model
@@ -35,7 +37,7 @@ class PriceHistory():
             df.to_csv(self.file_path, index=False)
 
     def setData(self, bid, ask):
-        self.__data['date time'] = [PriceHistory.getDateTime()]
+        self.__data['date time'] = [pd.to_datetime(PriceHistory.getDateTime())]
         self.__data['bid'] = bid
         self.__data['ask'] = ask
 
@@ -61,10 +63,17 @@ class PriceHistory():
     def trend(self, num_days=5):
         pass
 
+    def getLastEntry(self):
+        df = pd.read_csv(self.file_path)
+        data = df.tail(1).to_dict('list')
+        return data
+
     def getData(self, num_days: int = None):
         df = pd.read_csv(self.file_path)
         if num_days:
-            data = df.tail(num_days).to_dict('list')
+            start_date = PriceHistory.getLastNDay(num_days)
+            data = df[pd.to_datetime(df['date time'])
+                      > pd.to_datetime(start_date)]
         else:
             data = df
         return data
@@ -79,27 +88,31 @@ class PriceHistory():
 
         return model
 
-    def plot(self, num_days: int = None):
+    def gradient(self, num_days: int = None, plot: bool = False):
         title = 'BTC Prices'
         df = self.getData(num_days)
-        x = pd.to_datetime(df['date time'])
-        y = df['ask']
+        start_date = pd.to_datetime(df['date time'].iloc[0])
+        df['date time'] = pd.to_datetime(df['date time'])
+        sec_difference = (df['date time'] - start_date).dt.total_seconds()
+        df['sec_from_start'] = sec_difference
 
-        if not num_days:
-            start_date = x[0]
-        else:
-            start_date = PriceHistory.getLastNDay(num_days)
+        x_plot = [df['date time'].values[0], df['date time'].values[-1]]
 
-        # x_pred = [[x.values[0]], [x.values[-1]]]
+        x_pred = [[df['sec_from_start'].values[0]],
+                  [df['sec_from_start'].values[-1]]]
+        model = PriceHistory.priceFit(df['sec_from_start'], df['bid'])
+        y_hat = model.predict(x_pred)
 
-        # model = PriceHistory.priceFit(x, y)
-        # y_hat = model.predict(x_pred)
+        if plot:
+            x_label = 'Date Time'
+            y_label = 'Price'
 
-        x_label = 'Date Time'
-        y_label = 'Price'
+            plt.figure(figsize=(16, 5), dpi=100)
+            plt.scatter(df['date time'], df['bid'], color='tab:red')
+            plt.plot(x_plot, y_hat, color='red')
+            plt.gca().set(title=title, xlabel=x_label, ylabel=y_label)
+            plt.show()
 
-        plt.figure(figsize=(16, 5), dpi=100)
-        plt.scatter(x, y, color='tab:red')
-        # plt.plot(x_pred, y_hat, color='blue')
-        plt.gca().set(title=title, xlabel=x_label, ylabel=y_label)
-        plt.show()
+        gradient = (y_hat[-1] - y_hat[0]) / \
+            (df['sec_from_start'].values[-1] - df['sec_from_start'].values[0])
+        return gradient

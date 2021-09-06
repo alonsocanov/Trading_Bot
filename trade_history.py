@@ -82,7 +82,7 @@ class TradeHistory:
         Creates dictionary with necessary data
         '''
 
-        self.__data['date time'] = [TradeHistory.getDateTime()]
+        self.__data['date time'] = [pd.to_datetime(TradeHistory.getDateTime())]
         self.__data['success'] = [success]
         self.__data['assets'] = [assets]
         if not success:

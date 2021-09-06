@@ -28,11 +28,14 @@ def startBot():
     my_assets = bot.assets
     # get las trade data
     data = trade_hist.getData()
+    grad = None
     # if there is not any prior information force to buy crypto
     if not data:
         amount = bot.getBalance('mxn')
         is_next_operation_buy = True
-        # in order to determine it shoul actiually buy, 5 day prior analisis must be done
+        # in order to determine it should actiually buy when no data available
+        grad = price_hist.gradient(5)
+
     # if there is prior information set variables
     else:
         success = data['success']
@@ -119,7 +122,7 @@ def startBot():
         price_hist.setData(bid, ask)
         price_hist.appendData()
 
-        # price_hist.plot(3)
+        price_hist.gradient(2)
 
         utils.sleep(1)
 
