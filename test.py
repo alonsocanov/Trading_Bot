@@ -60,9 +60,15 @@ class TestModules(unittest.TestCase):
         print('Conversion with fee:', total_fee)
         print()
 
-    def test_trade_attempt(self):
+    def test_percentage_difference(self):
         print('Testing attemps to make trades and percentage differences')
-        pass
+        prior_total = 1000.00
+        current_total = 1001.00
+        print('Prior Total:', prior_total)
+        print('Current total:', current_total)
+        percentage_diff = trade.percentageDifference(
+            prior_total, current_total)
+        print('Percentage Difference:', percentage_diff)
 
 
 if __name__ == '__main__':
@@ -70,4 +76,4 @@ if __name__ == '__main__':
     test_bot.test_log_class()
     test_bot.test_api()
     test_bot.test_trade_conversions()
-    test_bot.test_trade_attempt()
+    test_bot.test_percentage_difference()
