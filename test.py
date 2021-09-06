@@ -1,91 +1,73 @@
 import unittest
-from logs import log_message
+from logs import Log
 import utils
 import api
 import trade
+from trade_history import TradeHistory
+from price_history import PriceHistory
 
 
 class TestModules(unittest.TestCase):
 
-    def test_trading_bot(self):
-        log_message('INFO', 'Started bot')
+    def test_log_class(self):
+        print('Testing log file')
+        log = Log()
+        message = ['Hello World']
+        log.message('INFO', message)
+
+    def test_api(self):
+        print('Testing Bitso API')
         bot = api.Bitso('config/credentials.json')
-        trade_config = utils.readJson('config/trade.json')
-
-        upward_trend_threshold = trade_config['UPWARD_TREND_THRESHOLD']
-        dip_threshold = trade_config['DIP_THRESHOLD']
-        profit_threshold = trade_config['PROFIT_THRESHOLD']
-        stop_loss_threshold = trade_config['STOP_LOSS_THRESHOLD']
-
         mayor_minor = 'btc_mxn'
+        print(bot.assets)
+        balance = bot.getBalance('mxn')
+        print('Available mxn balance:', balance['mxn']['available'])
+        bids = bot.getBids(mayor_minor)
+        print('Bids:', bids[0])
+        asks = bot.getAsks(mayor_minor)
+        print('Asks:', asks[0])
+        taker_fee = bot.getTakerPercentageFee(mayor_minor)
+        print('Taker fee:', taker_fee)
+        maker_fee = bot.getMakerPercentageFee(mayor_minor)
+        print('Make fee:', maker_fee)
+        print()
 
-        my_assets = bot.assets
-        if 'mxn' in my_assets:
-            asset = 'mxn'
-        balance = bot.getAvailableBalance(asset)
-        btc_bids = bot.getBids('btc_mxn')
-        last_operation_price = btc_bids[0]['price']
+    def test_trade_conversions(self):
+        print('Testing trade methods')
+        bot = api.Bitso('config/credentials.json')
+        mayor_minor = 'btc_mxn'
+        operation_buy = True
+        amount = 150.00
+        current_prices = bot.getBids(mayor_minor)
+        fee = bot.getTakerPercentageFee(mayor_minor)
+        total = trade.conversion(operation_buy, amount, current_prices)
+        total_fee = trade.tradeWithFee(total, fee)
+        print('Operation Buy:', operation_buy)
+        print('Amount:', amount)
+        print('Current Market price:', current_prices[:2])
+        print('Conversion:', total)
+        print('Conversion with fee:', total_fee)
+        operation_buy = False
+        fee = bot.getMakerPercentageFee(mayor_minor)
+        amount = total_fee
+        current_prices = bot.getAsks(mayor_minor)
+        total = trade.conversion(operation_buy, amount, current_prices)
+        total_fee = trade.tradeWithFee(total, fee)
+        print('Operation Buy:', operation_buy)
+        print('Amount:', amount)
+        print('Current Market price:', current_prices[:2])
+        print('Conversion:', total)
+        print('Conversion with fee:', total_fee)
+        print()
 
-        is_next_operation_buy = True
-
-        for idx in range(1):
-
-            # buy data
-            if is_next_operation_buy:
-                # taker fee
-                fee = bot.getTakerPercentageFee('btc_mxn')
-                # list of current bids
-                current_prices = bot.getBids('btc_mxn')
-                # current bid
-                current_price = current_prices[0]['price']
-                #
-                limit_threshold = upward_trend_threshold
-                #
-                trend = dip_threshold
-
-            # sell data
-            else:
-                # maker fee
-                fee = bot.getMakerPercentageFee('btc_mxn')
-                # list of current asks
-                current_prices = bot.getAsks('btc_mxn')
-                # current ask
-                current_price = current_prices[0]['price']
-
-                limit_threshold = profit_threshold
-                trend = stop_loss_threshold
-
-            btc_mxn = trade.mayorMinorConversion(balance, current_prices)
-
-            total_btc = trade.tradeWithFee(btc_mxn, fee)
-            # this percentage difference is incorrect mus compare
-            percentage_diff = trade.percentageDifference(
-                current_price, last_operation_price)
-
-            action = trade.attemptToMakeTrade(
-                is_next_operation_buy, percentage_diff, limit_threshold, trend)
-            # buy or sell action
-            if action:
-                if is_next_operation_buy:
-                    message = ['Bot tip: BUY']
-                    log_message('INFO', message)
-                    # response = bot.buyMarket('btc_mxn', minor='100.00')
-                    response = {'success': True}  # supposition
-                else:
-                    message = ['Bot tip: SELL']
-                    log_message('INFO', message)
-                    # response = bot.sellMarket('btc_mxn', minor='100.00')
-                    response = {'success': True}  # supposition
-                    log_message('INFO', response)
-                is_next_operation_buy = utils.saveHistory(response['success'], 'BUY', 'btc_mxn',
-                                                          '100.00', current_price, total_btc, percentage_diff)
-            else:
-                message = ['Bot tip: STAY']
-                log_message('INFO', message)
-
-            utils.sleep(1)
+    def test_trade_attempt(self):
+        print('Testing attemps to make trades and percentage differences')
+        pass
 
 
 if __name__ == '__main__':
     test_bot = TestModules()
-    test_bot.test_trading_bot()
+    test_bot.test_log_class()
+    test_bot.test_api()
+    test_bot.test_trade_conversions()
+    test_bot.test_trade_attempt()
