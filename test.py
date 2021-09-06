@@ -108,7 +108,7 @@ class TestModules(unittest.TestCase):
         trend = STOP_LOSS_THRESHOLD
         action = trade.attemptToMakeTrade(
             operation_buy, percentage_diff, limit_threshold, trend)
-        print('BUY action:', action)
+        print('SELL action:', action)
         print()
 
 
