@@ -19,13 +19,16 @@ def tradeWithFee(amount, fee):
     return total
 
 
-def conversion(amount, books: list):
+def conversion(amount, books: list, buy: bool):
     amount = utils.strToFloat(amount)
     total = 0
     needed = None
     for book in books:
         price = utils.strToFloat(book['price'])
-        total += amount / price
+        if buy:
+            total += amount / price
+        else:
+            total += amount * price
         if not needed:
             needed = total
         if utils.strToFloat(book['amount']) < needed:
