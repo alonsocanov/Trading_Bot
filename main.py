@@ -35,9 +35,11 @@ def startBot():
         # in order to determine it shoul actiually buy, 5 day prior analisis must be done
     # if there is prior information set variables
     else:
-        amount = data['amount']
         success = data['success']
         is_next_operation_buy = data['transaction']
+        if success:
+            amount = data['obtained']
+            prev_amount = data['amount']
 
         is_next_operation_buy = utils.nextOperation(
             success, is_next_operation_buy)
@@ -48,6 +50,8 @@ def startBot():
         ask_prices = bot.getAsks(mayor_minor)
         # buy data
         if is_next_operation_buy:
+            message = ['Trying to Buy']
+            log.message('INFO', message)
             # taker fee
             fee = bot.getTakerPercentageFee(mayor_minor)
             # list of current bids
@@ -61,6 +65,8 @@ def startBot():
 
         # sell data
         else:
+            message = ['Trying to Sell']
+            log.message('INFO', message)
             # maker fee
             fee = bot.getMakerPercentageFee(mayor_minor)
             # list of current asks
@@ -78,7 +84,7 @@ def startBot():
 
         # sure to compare crypto with crypto and currency with currency
         percentage_diff = trade.percentageDifference(
-            data['obtained'], total)
+            prev_amount, total)
 
         action = trade.attemptToMakeTrade(
             is_next_operation_buy, percentage_diff, limit_threshold, trend)
@@ -91,7 +97,7 @@ def startBot():
             # sell
             else:
                 # response = bot.sellMarket('btc_mxn', minor='100.00')
-                response = {'success': False}  # supposition
+                response = {'success': True}  # supposition
 
             success = response['success']
             if success:
@@ -99,6 +105,7 @@ def startBot():
                                    amount, current_price, total, percentage_diff)
                 trade_hist.appendData()
 
+                prev_amount = amount
                 amount = total
             else:
                 message = ['Unable to make trade']
@@ -112,7 +119,7 @@ def startBot():
         price_hist.setData(bid, ask)
         price_hist.appendData()
 
-        price_hist.plot(3)
+        # price_hist.plot(3)
 
         utils.sleep(1)
 

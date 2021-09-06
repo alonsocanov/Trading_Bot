@@ -19,7 +19,7 @@ def tradeWithFee(amount, fee):
     return total
 
 
-def conversion(amount, books: list, buy: bool):
+def conversion(buy: bool, amount, books: list):
     amount = utils.strToFloat(amount)
     total = 0
     needed = None
@@ -27,13 +27,20 @@ def conversion(amount, books: list, buy: bool):
         price = utils.strToFloat(book['price'])
         if buy:
             total += amount / price
+            if not needed:
+                needed = total
+            if utils.strToFloat(book['amount']) < needed:
+                needed -= utils.strToFloat(book['amount'])
+            else:
+                break
         else:
             total += amount * price
-        if not needed:
-            needed = total
-        if utils.strToFloat(book['amount']) < needed:
-            needed -= utils.strToFloat(book['amount'])
-        else:
+            if not needed:
+                needed = amount
+            if utils.strToFloat(book['amount']) < needed:
+                needed -= utils.strToFloat(book['amount'])
+            else:
+                break
             break
 
     total = utils.floatToStr(total)
@@ -79,4 +86,5 @@ def attemptToMakeTrade(is_next_operation_buy, percentage_diff, limit_threshold, 
         action = tryToBuy(percentage_diff, limit_threshold, trend)
     else:
         action = tryToSell(percentage_diff, limit_threshold, trend)
+
     return action
