@@ -98,15 +98,17 @@ def tradeMessage(is_next_operation_buy, mayor_minor, prev_amount, amount, percen
     if is_next_operation_buy:
         new_currency = 'BTC'
         prev_currency = 'MXN'
-        message = ['[BOUGHT] -', mayor_minor.split('_')[0]]
+        transaction = '[BUY]'
     else:
         new_currency = 'MXN'
         prev_currency = 'BTC'
-        message = ['[SOLD] -', mayor_minor.split('_')[1]]
+        transaction = '[SELL]'
+    message = ['[BALANCE] -', amount, prev_currency]
     log.message('INFO', message)
-    message = ['[PREV AMOUNT] -', prev_amount, prev_currency]
+    message = ['[PREV BALANCE] -', prev_amount, prev_currency]
     log.message('INFO', message)
-    message = ['[AMOUNT] -', amount, prev_currency]
+    message = [transaction, '-', total,
+               new_currency, 'for', amount, prev_currency]
     log.message('INFO', message)
     message = ['[% DIFF] -', percentage_diff, '%']
     log.message('INFO', message)
