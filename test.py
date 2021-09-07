@@ -1,4 +1,6 @@
 import unittest
+
+from matplotlib.pyplot import plot
 from logs import Log
 import utils
 import api
@@ -111,6 +113,12 @@ class TestModules(unittest.TestCase):
         print('SELL action:', action)
         print()
 
+    def test_plot(self, plot):
+        print('Testing plot for analysis')
+        prirce_hist = PriceHistory()
+        grad = prirce_hist.gradient(plot=plot)
+        print('Gradient:', grad)
+
 
 if __name__ == '__main__':
     test_bot = TestModules()
@@ -120,3 +128,4 @@ if __name__ == '__main__':
     test_bot.test_percentage_difference()
     test_bot.test_trade_buy_attempt()
     test_bot.test_trade_sell_attempt()
+    test_bot.test_plot(plot=True)

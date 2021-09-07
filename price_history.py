@@ -100,8 +100,10 @@ class PriceHistory():
 
         x_pred = [[df['sec_from_start'].values[0]],
                   [df['sec_from_start'].values[-1]]]
-        model = PriceHistory.priceFit(df['sec_from_start'], df['bid'])
-        y_hat = model.predict(x_pred)
+        model_bid = PriceHistory.priceFit(df['sec_from_start'], df['bid'])
+        model_ask = PriceHistory.priceFit(df['sec_from_start'], df['ask'])
+        y_hat_bid = model_bid.predict(x_pred)
+        y_hat_ask = model_bid.predict(x_pred)
 
         if plot:
             x_label = 'Date Time'
@@ -109,10 +111,12 @@ class PriceHistory():
 
             plt.figure(figsize=(16, 5), dpi=100)
             plt.scatter(df['date time'], df['bid'], color='tab:red')
-            plt.plot(x_plot, y_hat, color='red')
+            plt.scatter(df['date time'], df['ask'], color='tab:blue')
+            plt.plot(x_plot, y_hat_bid, color='red')
+            plt.plot(x_plot, y_hat_ask, color='blue')
             plt.gca().set(title=title, xlabel=x_label, ylabel=y_label)
             plt.show()
 
-        gradient = (y_hat[-1] - y_hat[0]) / \
+        gradient = (y_hat_bid[-1] - y_hat_bid[0]) / \
             (df['sec_from_start'].values[-1] - df['sec_from_start'].values[0])
         return gradient
