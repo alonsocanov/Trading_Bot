@@ -72,6 +72,7 @@ def tryToSell(percentage_diff, profit_threshold, stop_loss_threshold):
 
 
 def percentageDifference(prior_total, current_total):
+    # make sure to compare crypto with crypto and currency with currency
     current_total = utils.strToFloat(current_total)
     prior_total = utils.strToFloat(prior_total)
     difference = current_total - prior_total
@@ -89,3 +90,25 @@ def attemptToMakeTrade(is_next_operation_buy, percentage_diff, limit_threshold, 
         action = tryToSell(percentage_diff, limit_threshold, trend)
 
     return action
+
+
+def tradeMessage(is_next_operation_buy, mayor_minor, prev_amount, amount, percentage_diff, total):
+    message = ['Operation succesfull']
+    log.message('INFO', message)
+    if is_next_operation_buy:
+        new_currency = 'BTC'
+        prev_currency = 'MXN'
+        message = ['[BOUGHT] -', mayor_minor.split('_')[0]]
+    else:
+        new_currency = 'MXN'
+        prev_currency = 'BTC'
+        message = ['[SOLD] -', mayor_minor.split('_')[1]]
+    log.message('INFO', message)
+    message = ['[PREV AMOUNT] -', prev_amount, prev_currency]
+    log.message('INFO', message)
+    message = ['[AMOUNT] -', amount, prev_currency]
+    log.message('INFO', message)
+    message = ['[% DIFF] -', percentage_diff, '%']
+    log.message('INFO', message)
+    message = ['[NEW BALANCE] -', total, new_currency]
+    log.message('INFO', message)
