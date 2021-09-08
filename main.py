@@ -137,7 +137,7 @@ def startBot():
             price_hist.setData(bid, ask)
             price_hist.appendData()
 
-            utils.sleep(3600)
+            utils.sleep(1800)
         except KeyboardInterrupt:
             message = ['Keyborad interrupt']
             log.message('WARNING', message)
