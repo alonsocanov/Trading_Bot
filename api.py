@@ -10,7 +10,6 @@ import json
 from logs import Log
 import os
 import sys
-import itertools
 
 
 log = Log()
@@ -18,7 +17,10 @@ log = Log()
 
 class Bitso:
     def __init__(self, file_path):
-        if os.path.isfile(file_path):
+        if not os.path.isfile(file_path):
+            current_dir = Bitso.getCurrentDirectory()
+            file_path = os.path.join(current_dir, file_path)
+        elif os.path.isfile(file_path):
             file = open(file_path)
             config = json.load(file)
             file.close()
@@ -46,6 +48,10 @@ class Bitso:
         for crypto in self.__crypto:
             assets.append(crypto)
         return assets
+
+    @staticmethod
+    def getCurrentDirectory():
+        return os.path.dirname(os.path.realpath(__file__))
 
     def getSignature(self, request_path):
         http_method = 'GET'

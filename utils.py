@@ -29,7 +29,10 @@ def sleep(var: float):
 
 
 def readJson(file_path: str):
-    if os.path.isfile(file_path):
+    if not os.path.isfile(file_path):
+        current_dir = getCurrentDirectory()
+        file_path = os.path.join(current_dir, file_path)
+    elif os.path.isfile(file_path):
         file = open(file_path)
         data = json.load(file)
         file.close()
@@ -37,7 +40,11 @@ def readJson(file_path: str):
     else:
         message = ['Could find file:', file_path]
         log.message('ERROR', message)
-        sys.exit('Error opening file')
+        sys.exit('Error opening json file')
+
+
+def getCurrentDirectory():
+    return os.path.dirname(os.path.realpath(__file__))
 
 
 def operationToBool(current_opertion):

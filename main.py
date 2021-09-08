@@ -144,10 +144,5 @@ def startBot():
             break
 
 
-def main():
-
-    startBot()
-
-
 if __name__ == '__main__':
-    main()
+    startBot()
