@@ -32,7 +32,7 @@ def readJson(file_path: str):
     if not os.path.isfile(file_path):
         current_dir = getCurrentDirectory()
         file_path = os.path.join(current_dir, file_path)
-    elif os.path.isfile(file_path):
+    if os.path.isfile(file_path):
         file = open(file_path)
         data = json.load(file)
         file.close()
