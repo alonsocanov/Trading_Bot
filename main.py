@@ -91,11 +91,15 @@ def startBot():
             if not prev_amount:
                 grad = price_hist.gradient(num_days=3)
                 if grad > 0 and is_next_operation_buy:
+                    message = ['Bot Tip: BUY']
                     action = True
                 elif grad < 0 and not is_next_operation_buy:
+                    message = ['Bot Tip: SELL']
                     action = True
                 else:
+                    message = ['Bot Tip: STAY']
                     action = False
+                log.message('INFO', message)
             else:
                 percentage_diff = trade.percentageDifference(
                     prev_amount, total)
