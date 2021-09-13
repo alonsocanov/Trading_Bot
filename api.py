@@ -1,7 +1,3 @@
-from requests.models import Response
-import config
-# from iexfinance.stocks import Stock
-# from iexfinance.refdata import get_symbols
 import time
 import hmac
 import hashlib
