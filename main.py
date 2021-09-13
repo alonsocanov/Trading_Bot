@@ -32,7 +32,7 @@ def startBot():
     prev_amount = None
     # if there is not any prior information force to buy crypto
     if not data:
-        amount = bot.getBalance('mxn')
+        amount = bot.getBalance('mxn')['mxn']['total']
         is_next_operation_buy = True
         # in order to determine it should actiually buy when no data is available
         grad = price_hist.gradient(5)
@@ -83,7 +83,6 @@ def startBot():
                 limit_threshold = profit_threshold
                 #
                 trend = stop_loss_threshold
-
             # total amount that would be received if trade is done
             total = trade.conversion(
                 is_next_operation_buy, amount, current_prices)
