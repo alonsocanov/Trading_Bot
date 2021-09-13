@@ -9,6 +9,8 @@ from logs import Log
 
 
 log = Log()
+
+
 class PriceHistory():
     def __init__(self, directory='price_history'):
         self.file_path = ''
@@ -106,8 +108,10 @@ class PriceHistory():
         model_ask = PriceHistory.priceFit(df['sec_from_start'], df['ask'])
         y_hat_bid = model_bid.predict(x_pred)
         y_hat_ask = model_bid.predict(x_pred)
-	inclination = (y_hat_ask[-1] - y_hat_ask[0])/(df['sec_from_start'].values[-1] - df['sec_from_start'].values[0])
-	message = ['Gradient:', inclination]
+        inclination = (y_hat_bid[-1] - y_hat_bid[0]) / \
+            (df['sec_from_start'].values[-1] - df['sec_from_start'].values[0])
+        message = ['Gradient:', inclination]
+        log.message('INFO', message)
         if plot:
             x_label = 'Date Time'
             y_label = 'Price'
