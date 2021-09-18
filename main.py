@@ -100,6 +100,7 @@ def startBot():
                     message = ['Bot Tip: STAY']
                     action = False
                 log.message('INFO', message)
+                percentage_diff = 3.0
             else:
                 percentage_diff = trade.percentageDifference(
                     prev_amount, total)
